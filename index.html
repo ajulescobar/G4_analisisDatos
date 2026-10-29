@@ -1,0 +1,2328 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Laboratorio de datos: análisis descriptivo, predictivo, prescriptivo, minería, NLP y visualización con el caso Café Altiplano. Código en Python y R.">
+<meta name="author" content="Andrés Julián Escobar Cardona">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%238CD600'/%3E%3Ccircle cx='20' cy='42' r='6' fill='%2310200A'/%3E%3Ccircle cx='34' cy='28' r='6' fill='%2310200A'/%3E%3Ccircle cx='46' cy='38' r='6' fill='%2310200A'/%3E%3C/svg%3E">
+<title>Laboratorio de Datos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Concepto: banco de laboratorio. Cabecera fija con una pestaña por técnica.
+   Cada módulo = zona de prueba (izquierda) + lectura de resultados y concepto (derecha) + código equivalente en Python y R (abajo). */
+:root{
+  --bg:#F5F8F1; --surface:#FFFFFF; --surface2:#EAF1E4; --ink:#13201A; --muted:#566559; --line:#D3DECE;
+  --accent:#8CD600; --accent-ink:#3B7000; --on-accent:#10200A;
+  --c1:#4C9A00; --c2:#2F6FDE; --c3:#D97300; --c4:#8A4FD6; --c5:#009C9C; --c6:#D6336C;
+  --bad:#C4372D; --warn:#A85F00; --ok-bg:#E1F2C3; --bad-bg:#FBE0DD; --warn-bg:#FCEBCF;
+  --code-bg:#0F1A14; --code-ink:#DDE9DF; --code-com:#7F9786; --code-str:#B8E36A; --code-kw:#7DB5FF;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --body:'Public Sans','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1511; --surface:#16201A; --surface2:#1D2B22; --ink:#E6F0E8; --muted:#9BB0A0; --line:#2B3B30;
+    --accent:#9BE000; --accent-ink:#B5F03A; --on-accent:#10200A;
+    --c1:#8FD11A; --c2:#6FA2FF; --c3:#F2A33C; --c4:#B58CF2; --c5:#4FD1C5; --c6:#FF7BA9;
+    --bad:#FF7F72; --warn:#F2B04C; --ok-bg:#243A12; --bad-bg:#3F1D1A; --warn-bg:#3B2A0F;
+    --code-bg:#0A100C; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1511; --surface:#16201A; --surface2:#1D2B22; --ink:#E6F0E8; --muted:#9BB0A0; --line:#2B3B30;
+  --accent:#9BE000; --accent-ink:#B5F03A; --on-accent:#10200A;
+  --c1:#8FD11A; --c2:#6FA2FF; --c3:#F2A33C; --c4:#B58CF2; --c5:#4FD1C5; --c6:#FF7BA9;
+  --bad:#FF7F72; --warn:#F2B04C; --ok-bg:#243A12; --bad-bg:#3F1D1A; --warn-bg:#3B2A0F;
+  --code-bg:#0A100C; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);padding-block:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+a{color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px}
+
+/* cabecera */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding-top:10px}
+.top-in{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.brand b{font:800 20px/1 var(--display);letter-spacing:-.01em}
+.brand span{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:10px;scrollbar-width:thin}
+.tab{flex:none;padding:7px 13px;border-radius:999px;text-decoration:none;color:var(--ink);font:600 14px var(--body);border:1px solid transparent}
+.tab:hover{background:var(--surface2)}
+.tab.on{background:var(--accent);color:var(--on-accent)}
+
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 56px}
+.mod{display:none}.mod.on{display:block}
+.kick{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin:0 0 8px}
+.mh h2{font:800 clamp(28px,4.6vw,44px)/1.04 var(--display);letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance;max-width:22ch}
+.mh p{max-width:68ch;color:var(--muted);margin:0}
+.sec{font:800 clamp(22px,3vw,28px)/1.1 var(--display);letter-spacing:-.01em;margin:40px 0 14px;text-wrap:balance}
+
+/* hero */
+.hero h1{font:800 clamp(40px,8vw,84px)/.96 var(--display);letter-spacing:-.035em;margin:0 0 16px;text-wrap:balance}
+.hero h1 em{font-style:normal;background:linear-gradient(transparent 60%,var(--accent) 60%)}
+.lead{font-size:clamp(17px,2vw,20px);max-width:60ch;margin:0}
+.guia{max-width:64ch;margin:20px 0 0;padding:14px 16px;background:var(--surface2);border-radius:12px;font-size:15px}
+.guia b{display:block;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin-bottom:4px}
+
+.routes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.route{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.route:hover{border-color:var(--accent-ink)}
+.route .t{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink)}
+.route .q{font:800 24px/1.05 var(--display);letter-spacing:-.01em}
+.route .d{font-size:14px;color:var(--muted)}
+
+/* layouts */
+.lab{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;margin-top:22px;align-items:start}
+@media (max-width:900px){.lab{grid-template-columns:minmax(0,1fr)}}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.card h3{font:700 17px/1.2 var(--display);margin:0 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 10px}
+.concept{background:var(--surface2);border-radius:12px;padding:14px 16px}
+.concept h4{margin:0 0 6px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink)}
+.concept p{margin:0 0 8px;font-size:14.5px}.concept p:last-child{margin:0}
+.reto{border:1px dashed var(--muted);border-radius:12px;padding:12px 16px;font-size:14.5px}
+.reto h4{margin:0 0 4px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.reto p{margin:0}
+
+/* controles */
+.ctrls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;margin-top:12px}
+.ctl{display:flex;flex-direction:column;gap:2px;min-width:150px;flex:1 1 150px}
+.ctl label{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl output{font:600 13px var(--mono);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--c1)}
+select,textarea,input[type=text]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{resize:vertical;line-height:1.45}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 13px;border-radius:8px;font:600 14px var(--body);cursor:pointer}
+.btn:hover{border-color:var(--accent-ink)}
+.btn.primary{background:var(--accent);border-color:transparent;color:var(--on-accent)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font:600 13px var(--body);color:var(--ink);cursor:pointer}
+.chip.on{background:var(--accent);border-color:transparent;color:var(--on-accent)}
+.chip small{font:500 11px var(--mono);opacity:.7}
+
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:14px;margin:8px 0 0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font:600 14px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font:600 12px var(--body);background:var(--surface2);color:var(--ink)}
+.pill.ok{background:var(--ok-bg);color:var(--accent-ink)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.note{font-size:14px;margin:10px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin-top:8px}
+
+/* gráficos */
+.chart{display:block;max-width:100%}
+.grid{stroke:var(--line);stroke-width:1}
+.axis{stroke:var(--muted);stroke-width:1}
+.tick{fill:var(--muted);font:11px var(--mono)}
+.axl{fill:var(--muted);font:12px var(--body)}
+.ml{font:600 12px var(--mono)}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th,.tbl td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.tbl th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tbl td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* código */
+.code-wrap{margin-top:22px}
+.ch{margin:0 0 8px;font:700 17px var(--display)}
+.ch span{font:400 14px var(--body);color:var(--muted)}
+.code{background:var(--code-bg);border-radius:12px;overflow:hidden}
+.code-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #26362c;flex-wrap:wrap}
+.ctabs{display:flex;gap:4px;flex-wrap:wrap}
+.ctab{background:none;border:0;color:#9db3a3;font:600 13px var(--mono);padding:6px 10px;border-radius:6px;cursor:pointer}
+.ctab.on{background:#223228;color:#e6f2e8}
+.code pre{margin:0;padding:14px 16px;overflow-x:auto;font:13px/1.65 var(--mono);color:var(--code-ink);tab-size:4}
+.code .btn{background:#223228;border-color:#2c4033;color:#e6f2e8}
+.cm{color:var(--code-com)}.st{color:var(--code-str)}.kw{color:var(--code-kw)}
+
+/* juego de orden */
+.order{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.stage{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);background:var(--surface);border-radius:10px}
+.stage.ok{border-color:var(--c1);background:var(--ok-bg)}
+.stage.no{border-color:var(--bad);background:var(--bad-bg)}
+.stage .grip{cursor:grab;color:var(--muted);font:700 18px var(--mono);user-select:none}
+.stage .st-t{flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px}
+.stage .st-t span{color:var(--muted)}
+.stage .mv{display:flex;gap:4px}
+
+/* sentimientos */
+.tk{display:inline-block;padding:2px 7px;margin:2px 3px 2px 0;border-radius:6px;background:var(--surface2);font-size:14px}
+.tk.pos{background:var(--ok-bg);color:var(--accent-ink);font-weight:600}
+.tk.neg{background:var(--bad-bg);color:var(--bad);font-weight:600}
+.tk sup{font:600 10px var(--mono);margin-left:3px}
+.tk small{font:500 10px var(--mono);margin-left:4px;opacity:.8}
+.gauge{position:relative;height:12px;border-radius:999px;background:linear-gradient(90deg,var(--bad-bg),var(--surface2) 50%,var(--ok-bg));margin:18px 0 6px;border:1px solid var(--line)}
+.gauge i{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:var(--ink);transform:translateX(-2px)}
+.gl{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted)}
+.dist{display:flex;height:22px;border-radius:6px;overflow:hidden;margin:8px 0}
+.dist b{display:block;min-width:0;font:600 11px/22px var(--mono);text-align:center;color:var(--on-accent);overflow:hidden}
+.wbar{display:grid;grid-template-columns:90px 1fr 24px;gap:8px;align-items:center;font-size:13px;margin:4px 0}
+.wbar div{height:10px;border-radius:5px;background:var(--c2)}
+.wbar span:last-child{font:600 12px var(--mono);text-align:right}
+
+/* visualización */
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}
+@media (max-width:560px){.slots{grid-template-columns:minmax(0,1fr)}}
+.slot{min-height:64px;border:2px dashed var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;background:var(--bg);cursor:pointer}
+.slot.over,.slot.target{border-color:var(--accent-ink);background:var(--surface2)}
+.slot b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.slot .em{color:var(--muted);font-size:13px}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:12px;text-align:center;font-size:14px;color:var(--muted)}
+.drop.over{border-color:var(--accent-ink);background:var(--surface2)}
+.msg{font-size:14px;margin:6px 0 0;min-height:1.2em}
+.msg.err{color:var(--bad)}
+
+/* herramientas */
+.tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
+.tool{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.tool h3{margin:0;font:700 18px var(--display)}
+.tool p{margin:0;font-size:14px;color:var(--muted)}
+.tool .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+
+/* quiz */
+.qq{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:12px}
+.qq h3{margin:0 0 4px;font:700 17px/1.3 var(--display)}
+.opt{display:block;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);background:var(--bg);border-radius:10px;margin-top:8px;cursor:pointer;font:inherit;color:inherit}
+.opt:hover:not(:disabled){border-color:var(--accent-ink)}
+.opt.right{border-color:var(--c1);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.why{margin:10px 0 0;font-size:14px;color:var(--muted)}
+.score{font:800 clamp(24px,4vw,34px)/1 var(--display)}
+
+.foot{padding-block:0 40px;color:var(--muted);font-size:13px}
+@media (max-width:520px){.ctl{min-width:100%}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* ===== v2: caso, hero, misiones ===== */
+.xp{display:flex;align-items:center;gap:10px;font:600 12px var(--mono);color:var(--muted)}
+.xp .lv{color:var(--ink);white-space:nowrap}
+.xp .bar{flex:1;max-width:260px;height:8px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.xp .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.tab .ck{display:none;margin-left:5px;font-size:12px;color:var(--accent-ink)}
+.tab.done .ck{display:inline}
+.tab.on .ck{color:var(--on-accent)}
+.hero2{position:relative;border-radius:18px;overflow:hidden;background:#0B120E;color:#EAF3EC;min-height:430px;display:grid}
+.hero2 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.h2-in{position:relative;z-index:1;padding:clamp(20px,4vw,40px);display:flex;flex-direction:column;justify-content:space-between;gap:20px;pointer-events:none}
+.h2-in *{pointer-events:auto}
+.hero2 .kick{color:#B5F03A}
+.hero2 h1{font:800 clamp(38px,7vw,76px)/.96 var(--display);letter-spacing:-.035em;margin:0 0 12px;max-width:10ch;text-wrap:balance}
+.hero2 h1 em{font-style:normal;color:#9BE000}
+.hero2 .lead{color:#C7D8CB;max-width:40ch;font-size:clamp(16px,1.9vw,19px)}
+.h2-bot{display:flex;flex-direction:column;gap:10px}
+.h2-cap{font:600 14px var(--body);color:#EAF3EC;min-height:2.6em;max-width:60ch;background:rgba(11,18,14,.7);padding:6px 10px;border-radius:8px;width:fit-content}
+.h2-chips{display:flex;gap:6px;flex-wrap:wrap}
+.h2-chips button{border:1px solid #2E4636;background:rgba(11,18,14,.7);color:#EAF3EC;border-radius:99px;padding:6px 13px;font:600 13px var(--body);cursor:pointer}
+.h2-chips button.on{background:#9BE000;color:#10200A;border-color:transparent}
+@media (max-width:640px){.hero2{min-height:740px}}
+.caso{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;margin-top:18px}
+@media (max-width:820px){.caso{grid-template-columns:minmax(0,1fr)}}
+.wa{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.wa .who{display:flex;align-items:center;gap:10px;margin-bottom:8px;font:700 15px var(--display)}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font:800 14px var(--display);flex:none}
+.wa .who small{display:block;font:500 12px var(--body);color:var(--muted)}
+.bub{background:var(--surface2);border-radius:4px 14px 14px 14px;padding:9px 12px;margin:6px 0;font-size:15px;max-width:52ch}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.kpi:hover{border-color:var(--accent-ink)}
+.kpi b{font:800 clamp(22px,3vw,30px)/1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi small{font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink)}
+.mis{border:2px solid var(--accent);border-radius:14px;padding:14px 16px;background:var(--surface);position:relative}
+.mis.done{border-color:var(--c1);background:var(--ok-bg)}
+.mis h4{margin:0 0 4px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);display:flex;justify-content:space-between;gap:8px}
+.mis p{margin:0 0 6px;font-size:14.5px}
+.mis .who{font-size:13px;color:var(--muted)}
+.mis .st{font:700 13px var(--body);margin-top:6px;color:var(--ink)}
+.dec{border:1px dashed var(--accent-ink);border-radius:12px;padding:12px 14px;margin-top:12px}
+.dec h4{margin:0 0 6px;font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink)}
+.dec .row{margin-bottom:8px}
+.big{font:800 clamp(28px,5vw,44px)/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.big.neg{color:var(--bad)}.big.pos{color:var(--accent-ink)}
+.bigl{font-size:13px;color:var(--muted)}
+.mlist{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px}
+.mlist li{display:flex;gap:10px;align-items:center;font-size:14px;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.mlist li.ok{background:var(--ok-bg);border-color:var(--c1)}
+.mlist li a{margin-left:auto;font-weight:600}
+.mlist .xpv{font:700 11px var(--mono);color:var(--accent-ink)}
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,30px);opacity:0;z-index:60;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font:600 15px var(--body);transition:all .4s cubic-bezier(.2,.8,.2,1);pointer-events:none;max-width:92vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:70;width:100%;height:100%}
+.feed{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:hidden}
+.rv{padding:8px 11px;border-radius:10px;background:var(--surface2);font-size:14px;border-left:4px solid var(--muted);animation:pop .35s ease-out}
+.rv.pos{border-color:var(--c1)}.rv.neg{border-color:var(--bad)}
+.rv small{display:block;font:500 11px var(--mono);color:var(--muted)}
+@keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}
+.tp{display:flex;gap:8px;flex-wrap:wrap}
+.tpb{flex:1 1 130px;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--surface);min-height:60px}
+.tpb b{font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.tpb.over{border-color:var(--accent-ink);background:var(--surface2)}
+.fchip{display:inline-flex;gap:6px;align-items:center;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font:600 13px var(--body);margin:2px;cursor:grab;touch-action:none;user-select:none}
+.fchip.on{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.fchip.trap.on{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.lb{width:100%;border-collapse:collapse;font-size:14px}
+.lb td,.lb th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.lb td.n{text-align:right;font-family:var(--mono)}
+.lb tr.me{background:var(--ok-bg)}
+@media (prefers-reduced-motion:reduce){.rv{animation:none}#toast{transition:none}}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes drawp{from{stroke-dashoffset:2000}to{stroke-dashoffset:0}}
+@keyframes popc{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:no-preference){
+.enter rect{transform-box:fill-box;transform-origin:bottom;animation:grow .6s ease-out}
+.enter path{stroke-dasharray:2000;animation:drawp 1.1s ease-out forwards}
+.enter circle{transform-box:fill-box;transform-origin:center;animation:popc .5s ease-out backwards}
+}
+.chk{display:inline-block;margin-right:12px;font-weight:700}
+.mis{margin-top:18px}
+@media (min-width:901px){.lab>.stk{position:sticky;top:112px;align-self:start}}
+.reto{border:2px dashed var(--accent-ink);background:var(--surface)}
+.reto h4{color:var(--accent-ink)}
+.rt{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rt li{display:flex;flex-direction:column;gap:4px}
+.rt .btn{text-align:left;width:100%}
+.rt .see{font-size:13.5px;color:var(--muted);padding-left:10px;border-left:3px solid var(--accent);margin:0}
+.rt li.done .btn{background:var(--ok-bg);border-color:var(--c1)}
+.foot a{color:var(--accent-ink)}
+.prof{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;border:1px solid var(--line);background:var(--surface);border-radius:14px;margin-bottom:14px}
+.prof b{display:block;font:800 17px var(--display)}
+.prof span{display:block;font-size:13px;color:var(--muted)}
+.prof .btn{margin-left:auto;text-decoration:none;display:inline-block}
+a.btn{text-decoration:none;display:inline-block}
+.gc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:14px}
+.gc input{max-width:200px}
+</style>
+
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brand"><b>Laboratorio de datos</b><span>Caso: Café Altiplano · prueba, decide y mira el código</span>
+    <div class="xp" aria-live="polite"><span class="lv" id="xp-lv">Aprendiz</span><span class="bar" aria-hidden="true"><i id="xp-bar"></i></span><span id="xp-n">0 / 900 XP</span></div></div>
+  <nav class="tabs" aria-label="Módulos">
+    <a class="tab on" id="tab-ruta" href="#ruta">Inicio<span class="ck">✓</span></a>
+    <a class="tab" id="tab-descriptivo" href="#descriptivo">Descriptivo<span class="ck">✓</span></a>
+    <a class="tab" id="tab-predictivo" href="#predictivo">Predictivo<span class="ck">✓</span></a>
+    <a class="tab" id="tab-prescriptivo" href="#prescriptivo">Prescriptivo<span class="ck">✓</span></a>
+    <a class="tab" id="tab-mineria" href="#mineria">Minería<span class="ck">✓</span></a>
+    <a class="tab" id="tab-sentimientos" href="#sentimientos">Lenguaje (NLP)<span class="ck">✓</span></a>
+    <a class="tab" id="tab-visualizacion" href="#visualizacion">Visualización<span class="ck">✓</span></a>
+    <a class="tab" id="tab-taller" href="#taller">Taller de modelos<span class="ck">✓</span></a>
+    <a class="tab" id="tab-herramientas" href="#herramientas">Herramientas</a>
+    <a class="tab" id="tab-quiz" href="#quiz">Autoevaluación<span class="ck">✓</span></a>
+  </nav>
+</div></header>
+<div id="toast" role="status" aria-live="polite"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<main class="wrap">
+
+<!-- ============ INICIO ============ -->
+<section id="m-ruta" class="mod on">
+  <div class="prof"><div class="av" aria-hidden="true">AE</div><div><b>Andrés Julián Escobar Cardona</b><span>Docente · Especialización en Inteligencia de Negocios · CUN</span></div><a class="btn sm" href="mailto:andres_escobar@cun.edu.co">andres_escobar@cun.edu.co</a></div>
+  <div class="hero2" id="hero2">
+    <canvas id="hero-cv" aria-hidden="true"></canvas>
+    <div class="h2-in">
+      <div>
+        <p class="kick">Especialización en Inteligencia de Negocios · Análisis de datos</p>
+        <h1>Del dato a la <em>decisión</em></h1>
+        <p class="lead">Hoy eres analista en <b>Café Altiplano</b>. Cada módulo es un problema real de la cadena: lo resuelves con tus manos, ves el dinero en juego y te llevas el código en Python y R.</p>
+      </div>
+      <div class="h2-bot">
+        <div class="h2-cap" id="h2-cap" aria-live="off"></div>
+        <div class="h2-chips" id="h2-chips" role="group" aria-label="Tipo de análisis"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caso">
+    <div class="wa">
+      <div class="who"><span class="av">LR</span><div>Laura Restrepo<small>Gerente general · Café Altiplano (personaje ficticio)</small></div></div>
+      <div class="bub">Bienvenido al equipo de datos. Tenemos 4 sedes, 4 líneas de producto y mucha información, pero decidimos «a ojo».</div>
+      <div class="bub">En cada módulo alguien del equipo te trae una decisión que cuesta plata. Resuélvela con datos y gana XP.</div>
+      <div class="bub">Pregunta guía: ¿cómo usamos el análisis de datos para decidir mejor y ganar ventaja competitiva en un entorno que cambia rápido?</div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+  </div>
+
+  <h2 class="sec">Tus misiones</h2>
+  <div class="card" style="margin-bottom:12px"><h3>Entrega tu avance al profesor</h3><p class="sub">Escribe tu nombre y genera un correo con tu nivel y tus misiones completadas.</p>
+    <div class="row"><input type="text" id="st-name" placeholder="Tu nombre completo" aria-label="Tu nombre completo" style="max-width:300px"><a class="btn primary" id="st-mail" href="mailto:andres_escobar@cun.edu.co">Enviar por correo</a><button class="btn" id="st-copy" type="button">Copiar resumen</button></div></div>
+  <ul class="mlist" id="mlist"></ul>
+
+  <h2 class="sec">Elige qué quieres probar</h2>
+  <div class="routes">
+    <a class="route" href="#descriptivo"><span class="t">Análisis descriptivo</span><span class="q">¿Qué pasó?</span><span class="d">Media, mediana y valores atípicos. Arrastra un dato y mira qué medida se mueve.</span></a>
+    <a class="route" href="#predictivo"><span class="t">Análisis predictivo</span><span class="q">¿Qué pasará?</span><span class="d">Ajusta un modelo y descubre cuándo deja de predecir y empieza a memorizar.</span></a>
+    <a class="route" href="#prescriptivo"><span class="t">Análisis prescriptivo</span><span class="q">¿Qué hacemos?</span><span class="d">Maximiza ganancias con recursos limitados moviendo un plan de producción.</span></a>
+    <a class="route" href="#mineria"><span class="t">Minería de datos</span><span class="q">¿Qué patrones hay?</span><span class="d">Agrupa clientes con k-means y encuentra qué productos se compran juntos.</span></a>
+    <a class="route" href="#sentimientos"><span class="t">Lenguaje natural</span><span class="q">¿Qué opinan?</span><span class="d">Escribe una reseña y mira cómo una máquina la lee palabra por palabra.</span></a>
+    <a class="route" href="#visualizacion"><span class="t">Visualización</span><span class="q">¿Cómo lo muestro?</span><span class="d">Arrastra columnas a los ejes o carga tu propio archivo CSV.</span></a>
+    <a class="route" href="#herramientas"><span class="t">Herramientas</span><span class="q">¿Con qué lo hago?</span><span class="d">Python, R, SQL, Excel, Power BI, Orange y más, y la misma tarea en cuatro lenguajes.</span></a>
+    <a class="route" href="#quiz"><span class="t">Autoevaluación</span><span class="q">¿Qué aprendí?</span><span class="d">Nueve preguntas con retroalimentación inmediata.</span></a>
+  </div>
+
+  <h2 class="sec">Ordena el proceso de análisis</h2>
+  <div class="lab">
+    <div class="card">
+      <h3>De los datos crudos a la decisión</h3>
+      <p class="sub">Arrastra las etapas o usa las flechas hasta que queden en el orden correcto. Después pulsa «Verificar».</p>
+      <ol class="order" id="g-list"></ol>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="g-check">Verificar orden</button>
+        <button class="btn" id="g-reset">Mezclar de nuevo</button>
+        <span id="g-msg" class="note" style="margin:0" aria-live="polite"></span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="concept"><h4>Concepto clave</h4>
+        <p>El análisis de datos convierte datos crudos en información procesable. Casi siempre sigue el mismo camino, y la calidad de cada etapa limita a la siguiente.</p>
+        <p>En la práctica es un ciclo: lo que descubres al monitorear te lleva a recolectar otros datos.</p>
+      </div>
+      <div class="concept"><h4>Tres preguntas, tres tipos</h4>
+        <p><b>Descriptivo:</b> ¿qué pasó? <b>Predictivo:</b> ¿qué podría pasar? <b>Prescriptivo:</b> ¿qué acción conviene tomar?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DESCRIPTIVO ============ -->
+<section id="m-descriptivo" class="mod">
+  <div class="mh"><p class="kick">Análisis descriptivo</p>
+    <h2>¿Qué pasó? Resume los datos antes de modelarlos</h2>
+    <p>Quince meses de ventas de la sede Norte de Café Altiplano, en millones de COP. El punto verde es el mes dieciséis, que aún no termina. Arrástralo y observa qué estadístico reacciona.</p></div>
+  <div id="ms-desc"></div>
+  <div class="lab">
+    <div class="card">
+      <h3>Puntos, caja e histograma de las ventas</h3>
+      <p class="sub">Arrastra el punto verde a lo largo del eje, o usa el deslizador.</p>
+      <div id="d-dots"></div>
+      <div id="d-hist"></div>
+      <div class="ctrls">
+        <div class="ctl"><label for="d-x">Ventas del mes 16 <output id="d-xo"></output></label><input type="range" id="d-x" min="40" max="420" step="1" value="135"></div>
+        <div class="row">
+          <button class="chip on" id="d-p-sim">Datos simétricos</button>
+          <button class="chip" id="d-p-ses">Datos sesgados</button>
+          <button class="btn sm" id="d-atip">Pedido corporativo (400)</button><button class="btn sm" id="d-play">▶ Ver el efecto</button>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card" id="d-stats"></div>
+      <div class="card dec" id="d-dec"></div>
+      <div class="concept"><h4>Concepto clave</h4>
+        <p><b>Media, mediana y moda</b> son tres maneras de decir «típico». La media usa todos los valores, así que un dato extremo la arrastra. La mediana solo mira el orden: parte los datos en dos mitades iguales y resiste los extremos.</p>
+        <p>La <b>desviación estándar</b> mide qué tan lejos están los datos de la media. En el diagrama de caja, lo que queda más allá de 1,5 veces el rango intercuartílico se marca como valor atípico.</p>
+      </div>
+      <div class="reto"><h4>Reto</h4><p>Pon el punto en 400. ¿Qué medida describe mejor un mes normal? Cambia a datos sesgados: ¿cuándo se parecen la media y la mediana?</p></div>
+    </div>
+  </div>
+  <div class="code-wrap"><p class="ch">Así se hace en código <span>— copia y pega en Google Colab (Python) o RStudio (R)</span></p><div id="code-desc"></div></div>
+</section>
+
+<!-- ============ PREDICTIVO ============ -->
+<section id="m-predictivo" class="mod">
+  <div class="mh"><p class="kick">Análisis predictivo</p>
+    <h2>¿Qué pasará? Un modelo que aprende del pasado</h2>
+    <p>Treinta y seis meses con la inversión en publicidad y las ventas de la cadena (millones de COP, datos simulados). El modelo aprende de los puntos de entrenamiento y se evalúa con los de prueba, que nunca vio. Camilo, de operaciones, compra el café según tu pronóstico.</p></div>
+  <div id="ms-pred"></div>
+  <div class="lab">
+    <div class="card">
+      <h3>Ajusta la complejidad del modelo</h3>
+      <p class="sub">Un grado bajo traza una recta; un grado alto permite curvas cada vez más flexibles.</p>
+      <div id="p-chart"></div>
+      <div class="legend"><span><i class="sw" style="background:var(--c1)"></i>Entrenamiento</span><span><i class="sw" style="background:var(--surface);border:2px solid var(--c3);width:12px;height:12px;box-sizing:border-box"></i>Prueba</span><span><i class="sw" style="background:var(--c2)"></i>Modelo</span></div>
+      <div class="ctrls">
+        <div class="ctl"><label for="p-deg">Grado del polinomio <output id="p-dego"></output></label><input type="range" id="p-deg" min="1" max="9" step="1" value="2"></div>
+        <div class="ctl"><label for="p-noise">Ruido en los datos <output id="p-noiseo"></output></label><input type="range" id="p-noise" min="2" max="14" step="1" value="6"></div>
+        <div class="ctl"><label for="p-inv">Si invierto en publicidad… <output id="p-invo"></output></label><input type="range" id="p-inv" min="0" max="10" step="0.1" value="6"></div>
+        <button class="btn" id="p-regen">Nuevos datos</button>
+      </div>
+      <h3 style="margin-top:20px">Error según la complejidad</h3>
+      <div class="row" style="margin-bottom:8px"><button class="chip on" id="p-m-rmse">Error (RMSE)</button><button class="chip" id="p-m-cost">Costo en pesos</button><button class="btn sm" id="p-play">▶ Recorrer grados</button></div>
+      <p class="sub" id="p-errsub">Raíz del error cuadrático medio (RMSE). Menos es mejor.</p>
+      <div id="p-err"></div>
+      <div class="legend"><span><i class="sw" style="background:var(--c1)"></i>Error en entrenamiento</span><span><i class="sw" style="background:var(--c3)"></i>Error en prueba</span></div>
+    </div>
+    <div class="stack">
+      <div class="card" id="p-stats"></div>
+      <div class="card dec" id="p-cost"></div>
+      <div class="concept"><h4>Concepto clave</h4>
+        <p><b>Subajuste:</b> el modelo es demasiado simple y falla en todos los datos. <b>Sobreajuste:</b> memoriza el ruido, acierta en entrenamiento y falla en prueba.</p>
+        <p>Un modelo bien ajustado equilibra precisión y flexibilidad. Por eso se evalúa siempre con datos que no usó para aprender y se monitorea con el tiempo.</p>
+      </div>
+      <div class="reto"><h4>Reto</h4><p>Sube el grado a 9 y pulsa «Nuevos datos» varias veces. ¿Qué pasa con cada error? Luego sube el ruido: ¿cambia el grado ideal?</p></div>
+    </div>
+  </div>
+  <div class="code-wrap"><p class="ch">Así se hace en código <span>— el grado del código sigue tu deslizador</span></p><div id="code-pred"></div></div>
+</section>
+
+<!-- ============ PRESCRIPTIVO ============ -->
+<section id="m-prescriptivo" class="mod">
+  <div class="mh"><p class="kick">Análisis prescriptivo</p>
+    <h2>¿Qué hacemos? Elige la mejor acción con recursos limitados</h2>
+    <p>El obrador de Café Altiplano prepara tandas de latte y de cold brew cada jornada. Hay horas de barista y kilos de café limitados. Mueve el plan de producción y compáralo con el óptimo.</p></div>
+  <div id="ms-presc"></div>
+  <div class="lab">
+    <div class="card">
+      <h3>Región factible y plan de producción</h3>
+      <p class="sub">La zona verde cumple todas las restricciones. Arrastra el punto o usa los deslizadores del plan.</p>
+      <div id="r-chart"></div>
+      <div class="legend" id="r-legend"></div>
+      <div class="ctrls">
+        <div class="ctl"><label for="r-a">Tandas de latte <output id="r-ao"></output></label><input type="range" id="r-a" min="0" max="100" step="1" value="20"></div>
+        <div class="ctl"><label for="r-b">Tandas de cold brew <output id="r-bo"></output></label><input type="range" id="r-b" min="0" max="100" step="1" value="20"></div>
+      </div>
+      <div class="ctrls">
+        <div class="ctl"><label for="r-pa">Margen por tanda de latte (miles de COP) <output id="r-pao"></output></label><input type="range" id="r-pa" min="20" max="60" step="1" value="40"></div>
+        <div class="ctl"><label for="r-pb">Margen por tanda de cold brew (miles de COP) <output id="r-pbo"></output></label><input type="range" id="r-pb" min="10" max="60" step="1" value="30"></div>
+        <div class="ctl"><label for="r-h">Horas de barista disponibles <output id="r-ho"></output></label><input type="range" id="r-h" min="60" max="160" step="2" value="100"></div>
+        <div class="ctl"><label for="r-m">Café disponible (kg) <output id="r-mo"></output></label><input type="range" id="r-m" min="40" max="120" step="2" value="80"></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn primary" id="r-opt">Ir al óptimo</button><button class="btn" id="r-walk">▶ Caminar hasta el óptimo</button><button class="btn" id="r-reset">Plan inicial</button></div>
+    </div>
+    <div class="stack">
+      <div class="card" id="r-stats"></div>
+      <div class="concept"><h4>Concepto clave</h4>
+        <p>El análisis prescriptivo no solo predice: recomienda. Define una <b>función objetivo</b> (lo que quieres maximizar o minimizar), unas <b>restricciones</b> (recursos limitados) y busca la mejor decisión dentro de la <b>región factible</b>.</p>
+        <p>En programación lineal, el óptimo siempre está en una esquina de esa región.</p>
+      </div>
+      <div class="reto"><h4>Reto</h4><p>Intenta superar el óptimo sin salirte de la zona verde. Después sube el margen del cold brew a 60: ¿cambia el plan óptimo?</p></div>
+    </div>
+  </div>
+  <div class="code-wrap"><p class="ch">Así se hace en código <span>— los números siguen tus deslizadores</span></p><div id="code-presc"></div></div>
+</section>
+
+<!-- ============ MINERÍA ============ -->
+<section id="m-mineria" class="mod">
+  <div class="mh"><p class="kick">Minería de datos</p>
+    <h2>¿Qué patrones hay? Grupos y asociaciones ocultas</h2>
+    <p>Marcela, de mercadeo, tiene 3.000 clientes en la base y presupuesto para una campaña por WhatsApp. Dos técnicas clásicas: <b>clustering</b> para segmentarlos sin etiquetas previas, y <b>asociación</b> para descubrir qué productos se compran juntos.</p></div>
+  <div id="ms-seg"></div>
+  <div class="lab">
+    <div class="card">
+      <h3>Segmentación de clientes con k-means</h3>
+      <p class="sub">Cada punto es un cliente. Pulsa «Paso» para ver cómo se asignan los puntos y se mueven los centros. Haz clic en el gráfico para agregar un cliente.</p>
+      <div id="k-chart"></div>
+      <div class="ctrls">
+        <div class="ctl"><label for="k-k">Número de grupos (k) <output id="k-ko"></output></label><input type="range" id="k-k" min="1" max="6" step="1" value="3"></div>
+        <div class="row"><button class="btn primary" id="k-step">Paso</button><button class="btn" id="k-run">Hasta converger</button><button class="btn" id="k-reset">Otros centros</button></div>
+      </div>
+      <p class="note" id="k-status" aria-live="polite"></p>
+      <div class="row" style="margin:8px 0"><button class="btn" id="k-play">▶ Animar el algoritmo</button></div>
+      <div class="tbl-wrap" id="k-table"></div>
+      <div class="dec" id="k-camp"></div>
+    </div>
+    <div class="stack">
+      <div class="card"><h3>Método del codo</h3><p class="sub">Inercia total para cada k. Busca dónde la curva deja de bajar rápido.</p><div id="k-elbow"></div></div>
+      <div class="concept"><h4>Concepto clave</h4>
+        <p><b>Clustering:</b> agrupa datos en categorías no predefinidas. K-means repite dos pasos: asigna cada punto al centro más cercano y mueve cada centro al promedio de su grupo, hasta que nada cambia.</p>
+        <p>Aprendizaje no supervisado: nadie le dijo al algoritmo cuáles son los grupos correctos.</p>
+      </div>
+      <div class="reto"><h4>Reto</h4><p>Prueba k = 2 y k = 5. ¿Cuál tiene más sentido de negocio? Mira el codo antes de decidir.</p></div>
+    </div>
+  </div>
+
+  <div class="lab" style="margin-top:34px">
+    <div class="card">
+      <h3>Reglas de asociación: la cesta de la compra</h3>
+      <p class="sub">Sesenta cestas de un supermercado de ejemplo. Ajusta los umbrales y mira qué reglas sobreviven.</p>
+      <div class="row" id="a-baskets" style="margin-bottom:8px"></div>
+      <div class="ctrls">
+        <div class="ctl"><label for="a-sup">Soporte mínimo <output id="a-supo"></output></label><input type="range" id="a-sup" min="5" max="40" step="1" value="12"></div>
+        <div class="ctl"><label for="a-conf">Confianza mínima <output id="a-confo"></output></label><input type="range" id="a-conf" min="30" max="95" step="1" value="60"></div>
+      </div>
+      <p class="note" id="a-count" aria-live="polite"></p>
+      <div class="row" style="margin:6px 0"><button class="btn" id="a-combo">Crear combo con la mejor regla</button><span class="note" style="margin:0" id="a-combomsg" aria-live="polite"></span></div>
+      <div class="tbl-wrap" id="a-table"></div>
+    </div>
+    <div class="stack">
+      <div class="concept"><h4>Concepto clave</h4>
+        <p><b>Soporte:</b> qué porcentaje de cestas contiene ambos productos. <b>Confianza:</b> de las cestas con A, cuántas tienen también B.</p>
+        <p><b>Lift:</b> compara la confianza con lo esperado por azar. Un lift mayor que 1 indica que A y B aparecen juntos más de lo normal; cerca de 1, son independientes.</p>
+      </div>
+      <div class="reto"><h4>Reto</h4><p>Sube la confianza a 90 %. ¿Qué reglas quedan? ¿Una confianza alta siempre significa un lift alto?</p></div>
+    </div>
+  </div>
+  <div class="code-wrap"><p class="ch">Así se hace en código <span>— los parámetros siguen tus deslizadores</span></p><div id="code-min"></div></div>
+</section>
+
+<!-- ============ SENTIMIENTOS ============ -->
+<section id="m-sentimientos" class="mod">
+  <div class="mh"><p class="kick">Procesamiento de lenguaje natural</p>
+    <h2>¿Qué opinan? Una máquina lee reseñas</h2>
+    <p>Sofía, de servicio al cliente, no alcanza a leer todas las reseñas. El análisis de sentimientos interpreta el tono de textos como reseñas, comentarios o encuestas. Este lector usa un léxico pequeño en español: suma puntos por palabra y ajusta por negaciones e intensificadores.</p></div>
+  <div id="ms-nlp"></div>
+  <div class="lab">
+    <div class="card">
+      <h3>Probador de una reseña</h3>
+      <p class="sub">Escribe o elige un ejemplo. Verás cada palabra con su puntaje.</p>
+      <label for="s-in" class="sub" style="display:block">Reseña</label>
+      <textarea id="s-in" rows="3">No es malo, pero la entrega fue muy lenta</textarea>
+      <div class="row" style="margin-top:8px" id="s-ex"></div>
+      <div id="s-out" aria-live="polite"></div>
+    </div>
+    <div class="stack">
+      <div class="concept"><h4>Concepto clave</h4>
+        <p><b>NLP</b> es el procesamiento de lenguaje natural. El primer paso es <b>tokenizar</b>: separar el texto en palabras. Luego un <b>léxico</b> asigna puntajes, y reglas simples manejan «no» y «muy».</p>
+        <p>Los modelos de lenguaje modernos entienden el contexto, incluida la ironía. Un léxico es fácil de explicar, y por eso sirve para aprender.</p>
+      </div>
+      <div class="reto"><h4>Reto</h4><p>Compara «es malo» con «no es malo». Después escribe una frase irónica: «Qué maravilloso esperar una hora por un café». ¿Qué falla?</p></div>
+    </div>
+  </div>
+    <div class="lab" style="margin-top:34px">
+    <div class="card">
+      <h3>Reseñas en vivo de Café Altiplano</h3>
+      <p class="sub">Sofía, de servicio al cliente, recibe reseñas todo el día. Pulsa «Iniciar» y mira cómo el lector las clasifica a medida que llegan.</p>
+      <div class="row" style="margin-bottom:10px"><button class="btn primary" id="f-go">▶ Iniciar</button><button class="btn" id="f-reset">Reiniciar</button><span class="note" style="margin:0" id="f-n" aria-live="polite"></span></div>
+      <div id="f-spark"></div>
+      <div class="feed" id="f-feed" aria-live="off"></div>
+    </div>
+    <div class="stack">
+      <div class="card"><h3>¿De qué se quejan?</h3><p class="sub">Temas detectados en las reseñas negativas.</p><div id="f-topics"></div>
+        <div class="dec" id="f-dec"><h4>Decisión de Sofía</h4><p class="note" style="margin-top:0">Cuando lleguen al menos 20 reseñas, elige el problema que hay que atacar primero.</p><div class="row" id="f-pick"></div><p class="note" id="f-res" aria-live="polite"></p></div>
+      </div>
+      <div class="concept"><h4>Concepto clave</h4><p>El análisis de texto convierte opiniones en números y temas, y permite vigilarlas en tiempo real. Pero mira las reseñas marcadas con 😏: el léxico no entiende la ironía. Ahí entran los modelos de lenguaje modernos.</p></div>
+    </div>
+  </div>
+  <div class="lab" style="margin-top:34px">
+    <div class="card">
+      <h3>Muchas reseñas a la vez</h3>
+      <p class="sub">Una reseña por línea. Edita, borra o pega las tuyas.</p>
+      <label for="s-batch" class="sub" style="display:block">Reseñas</label>
+      <textarea id="s-batch" rows="9"></textarea>
+      <div class="tbl-wrap" id="s-table" style="margin-top:10px"></div>
+    </div>
+    <div class="stack">
+      <div class="card"><h3>Panorama</h3><div id="s-sum"></div></div>
+      <div class="card"><h3>Palabras más frecuentes</h3><p class="sub">Sin palabras vacías como «el» o «de».</p><div id="s-words"></div></div>
+    </div>
+  </div>
+  <div class="code-wrap"><p class="ch">Así se hace en código <span>— de un léxico casero a un modelo preentrenado</span></p><div id="code-nlp"></div></div>
+</section>
+
+<!-- ============ VISUALIZACIÓN ============ -->
+<section id="m-visualizacion" class="mod">
+  <div class="mh"><p class="kick">Visualización de datos</p>
+    <h2>¿Cómo lo muestro? Arrastra columnas, el gráfico se arma solo</h2>
+    <p>Don Héctor, de la junta, solo lee gráficos. Arrastra una columna al eje X y otra al eje Y. En pantallas táctiles, toca la columna y luego el espacio donde quieres ponerla. El tipo de gráfico cambia según el tipo de dato.</p></div>
+  <div id="ms-viz"></div>
+  <div class="lab">
+    <div class="card">
+      <h3>Constructor de gráficos</h3>
+      <p class="sub" id="v-info"></p>
+      <div class="row" id="v-chips" aria-label="Columnas disponibles"></div>
+      <div class="slots" id="v-slots"></div>
+      <div class="ctrls" style="margin-top:0">
+        <div class="ctl"><label for="v-agg">Cómo agregar</label><select id="v-agg"><option value="sum">Suma</option><option value="mean">Promedio</option></select></div>
+        <label class="row" style="font-size:14px"><input type="checkbox" id="v-sort"> Ordenar barras de mayor a menor</label>
+      </div>
+      <div class="row" id="v-presets" style="margin:12px 0 4px"></div>
+      <div id="v-chart" style="margin-top:8px"></div>
+      <div class="legend" id="v-legend"></div>
+    </div>
+    <div class="stack">
+      <div class="card" id="v-head"></div>
+      <div class="card" id="v-why"></div>
+      <div class="card">
+        <h3>Usa tus propios datos</h3>
+        <p class="sub">Suelta un archivo CSV aquí o elígelo. Se procesa en tu navegador y no se sube a ningún sitio.</p>
+        <div class="drop" id="v-drop">Suelta un .csv aquí<br><label class="btn sm" for="v-file" style="display:inline-block;margin-top:8px">Elegir archivo</label><input type="file" id="v-file" accept=".csv,.txt,text/csv" style="position:absolute;left:-9999px"></div>
+        <p class="msg" id="v-msg" aria-live="polite"></p>
+        <div class="row"><button class="btn sm" id="v-back">Volver al ejemplo</button><button class="btn sm" id="v-copy">Copiar CSV de ejemplo</button></div>
+      </div>
+      <div class="concept"><h4>Concepto clave</h4>
+        <p>Elige el gráfico según la pregunta: comparar categorías (barras), evolución en el tiempo (líneas), relación entre dos medidas (dispersión), distribución (histograma), dos categorías con una medida (mapa de calor).</p>
+        <p>Una correlación alta no prueba que una variable cause la otra.</p>
+      </div>
+    </div>
+  </div>
+  <div class="code-wrap"><p class="ch">Así se hace en código <span>— el código sigue tu gráfico</span></p><div id="code-vis"></div></div>
+</section>
+
+<!-- ============ TALLER DE MODELOS ============ -->
+<section id="m-taller" class="mod">
+  <div class="mh"><p class="kick">Aprendizaje automático</p>
+    <h2>Taller de modelos: arma tu pipeline y compite</h2>
+    <p>Marcela quiere predecir las ventas de cada sede y producto antes de planear la publicidad. Tú armas la tubería completa —datos, variables, modelo, evaluación— y ves si tu modelo le gana a «adivinar el promedio».</p></div>
+  <div id="ms-ml"></div>
+  <div class="lab">
+    <div class="card">
+      <h3>1 · Datos y variables</h3>
+      <p class="sub">192 filas de Café Altiplano (12 meses × 4 sedes × 4 productos). Toca o arrastra las columnas entre «Disponibles» y «Que usa el modelo».</p>
+      <div class="tp" id="m-buckets"></div>
+      <div id="m-warn" class="note" aria-live="polite"></div>
+      <h3 style="margin-top:18px">2 · Modelo</h3>
+      <div class="row" id="m-models"></div>
+      <div class="ctrls">
+        <div class="ctl" id="m-hp-wrap"><label for="m-hp"><span id="m-hp-l">Parámetro</span> <output id="m-hpo"></output></label><input type="range" id="m-hp" min="1" max="15" step="1" value="5"></div>
+        <div class="ctl"><label for="m-test">3 · Parte reservada para prueba <output id="m-testo"></output></label><input type="range" id="m-test" min="20" max="40" step="5" value="25"></div>
+        <button class="btn" id="m-shuffle">Otra partición</button>
+      </div>
+      <h3 style="margin-top:18px">4 · Evaluación</h3>
+      <p class="sub">Cada punto es un mes-sede-producto de la parte de prueba, que el modelo nunca vio. Sobre la diagonal acertó.</p>
+      <div id="m-chart"></div>
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="m-save">Guardar en el ranking</button><span class="note" style="margin:0" id="m-savemsg" aria-live="polite"></span></div>
+    </div>
+    <div class="stack">
+      <div class="card" id="m-stats"></div>
+      <div class="card"><h3>Ranking de tus intentos</h3><p class="sub">Solo se comparan intentos con la misma partición.</p><div id="m-lb"></div></div>
+      <div class="card" id="m-rules" hidden></div>
+      <div class="concept"><h4>Concepto clave</h4>
+        <p><b>Pipeline de ML:</b> datos → variables → modelo → evaluación. Siempre se compara contra una <b>línea base</b> (aquí, predecir el promedio): si tu modelo no la supera, no aporta.</p>
+        <p><b>Fuga de datos (data leakage):</b> usar una variable que solo conoces después del hecho. Da resultados espectaculares en la prueba y fracasa en producción.</p>
+      </div>
+    </div>
+  </div>
+  <div class="code-wrap"><p class="ch">Así se hace en código <span>— el código sigue tu pipeline</span></p><div id="code-ml"></div></div>
+</section>
+
+<!-- ============ HERRAMIENTAS ============ -->
+<section id="m-herramientas" class="mod">
+  <div class="mh"><p class="kick">Herramientas</p>
+    <h2>¿Con qué lo hago? Elige según la tarea y tu nivel</h2>
+    <p>No hay una herramienta ganadora. Filtra por lo que necesitas hacer y por si quieres escribir código o trabajar arrastrando bloques.</p></div>
+  <div class="row" style="margin-top:20px" id="t-task"></div>
+  <div class="row" style="margin-top:8px" id="t-kind"></div>
+  <div class="tools" id="t-grid"></div>
+
+  <h2 class="sec">La misma tarea en cuatro lenguajes</h2>
+  <div class="card">
+    <div class="row" id="ro-tasks"></div>
+    <div class="tbl-wrap" style="margin-top:12px"><table class="tbl" id="ro-table"></table></div>
+    <p class="note">Los nombres de columnas son de ejemplo. En Excel en español, los argumentos de las funciones se separan con punto y coma o con coma según la configuración regional.</p>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="m-quiz" class="mod">
+  <div class="mh"><p class="kick">Autoevaluación</p>
+    <h2>¿Qué aprendí? Nueve preguntas</h2>
+    <p>Responde y verás de inmediato la explicación. Puedes reiniciar las veces que quieras.</p></div>
+  <div id="ms-quiz"></div>
+  <div class="row" style="margin-top:18px"><span class="score" id="q-score">0 / 9</span><button class="btn" id="q-reset">Reiniciar</button></div>
+  <div id="q-list"></div>
+</section>
+
+</main>
+<footer class="wrap foot">Café Altiplano y sus personas (Laura, Camilo, Marcela, Sofía, Don Héctor, Daniela) son ficticios, y todos los datos son simulados. Los cálculos corren en tu navegador; el código mostrado es el equivalente en Python y R.<br><b>Diseñado por Andrés Julián Escobar Cardona</b> · Docente, Especialización en Inteligencia de Negocios, CUN · <a href="mailto:andres_escobar@cun.edu.co">andres_escobar@cun.edu.co</a><br><button class="btn sm" id="reset-prog">Reiniciar mi progreso</button></footer>
+
+<script>
+'use strict';
+/* ================= utilidades ================= */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const fmt=(v,d=1)=>Number(v).toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fnum=v=>Number.isInteger(v)?fmt(v,0):fmt(v,1);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r){let u=0;while(u===0)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+const lin=(d0,d1,r0,r1)=>v=>r0+(v-d0)*(r1-r0)/((d1-d0)||1);
+function niceStep(range,n){const raw=range/n;const p=Math.pow(10,Math.floor(Math.log10(raw)));const f=raw/p;return (f<1.5?1:f<3?2:f<7?5:10)*p}
+function ticks(a,b,n){const s=niceStep(b-a,n||5);const out=[];for(let v=Math.ceil(a/s-1e-9)*s;v<=b+1e-9;v+=s)out.push(+v.toFixed(10));return out}
+const cw=sel=>Math.max(260,Math.floor(($(sel).clientWidth)||560));
+const CC=['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)'];
+const svg=(w,h,inner,label)=>`<svg class="chart" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label||'Gráfico')}">${inner}</svg>`;
+function frame(o){
+  const w=o.w,h=o.h,m=Object.assign({l:o.yl?58:44,r:14,t:12,b:o.xl?40:28},o.m||{});
+  const pw=w-m.l-m.r,ph=h-m.t-m.b;
+  const sx=lin(o.xd[0],o.xd[1],m.l,m.l+pw), sy=lin(o.yd[0],o.yd[1],m.t+ph,m.t);
+  const xt=o.xt===null?[]:(o.xt||ticks(o.xd[0],o.xd[1],Math.max(3,Math.floor(pw/90))));
+  const yt=o.yt===null?[]:(o.yt||ticks(o.yd[0],o.yd[1],Math.max(3,Math.floor(ph/45))));
+  const xf=o.xf||fnum, yf=o.yf||fnum;
+  let s='';
+  yt.forEach(v=>{const y=sy(v).toFixed(1);s+=`<line class="grid" x1="${m.l}" x2="${m.l+pw}" y1="${y}" y2="${y}"/><text class="tick" x="${m.l-6}" y="${(sy(v)+4).toFixed(1)}" text-anchor="end">${yf(v)}</text>`});
+  xt.forEach(v=>{s+=`<text class="tick" x="${sx(v).toFixed(1)}" y="${m.t+ph+16}" text-anchor="middle">${xf(v)}</text>`});
+  s+=`<line class="axis" x1="${m.l}" x2="${m.l+pw}" y1="${m.t+ph}" y2="${m.t+ph}"/>`;
+  if(o.xl)s+=`<text class="axl" x="${m.l+pw/2}" y="${h-6}" text-anchor="middle">${o.xl}</text>`;
+  if(o.yl)s+=`<text class="axl" transform="translate(13 ${m.t+ph/2}) rotate(-90)" text-anchor="middle">${o.yl}</text>`;
+  return {m,pw,ph,sx,sy,axes:s,w,h};
+}
+function setupDrag(box,onMove){
+  let on=false;
+  box.addEventListener('pointerdown',e=>{if(!e.target.closest('[data-drag]'))return;on=true;try{box.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+  box.addEventListener('pointermove',e=>{if(!on)return;const s=box.querySelector('svg');if(!s)return;const r=s.getBoundingClientRect();onMove(e.clientX-r.left,e.clientY-r.top)});
+  const end=()=>{on=false};
+  box.addEventListener('pointerup',end);box.addEventListener('pointercancel',end);
+}
+function copyText(t,btn){
+  const old=btn.textContent;
+  const done=()=>{btn.textContent='¡Copiado!';setTimeout(()=>{btn.textContent=old},1400)};
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done()}catch(e){btn.textContent='Selecciona y copia'}ta.remove()};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fb)}else fb();
+}
+function hl(code){
+  return esc(code).replace(/(#[^\n]*)|("[^"\n]*"|'[^'\n]*')|\b(import|from|as|def|return|for|in|library|function|if|else|print|SELECT|FROM|WHERE|GROUP BY|ORDER BY)\b/g,
+    (m,c,s,k)=>c?`<span class="cm">${c}</span>`:s?`<span class="st">${s}</span>`:`<span class="kw">${k}</span>`);
+}
+function codePanel(mountId,getTabs){
+  const el=$('#'+mountId);let idx=0;
+  function draw(){
+    const tabs=getTabs();if(idx>=tabs.length)idx=0;
+    el.innerHTML=`<div class="code"><div class="code-h"><div class="ctabs" role="tablist">${tabs.map((t,i)=>`<button class="ctab${i===idx?' on':''}" data-i="${i}" role="tab" aria-selected="${i===idx}">${t.label}</button>`).join('')}</div><button class="btn sm" data-copy>Copiar</button></div><pre><code>${hl(tabs[idx].code)}</code></pre></div>`;
+  }
+  el.addEventListener('click',e=>{
+    const b=e.target.closest('.ctab');if(b){idx=+b.dataset.i;draw();return}
+    const c=e.target.closest('[data-copy]');if(c)copyText(getTabs()[idx].code,c);
+  });
+  draw();return draw;
+}
+const pill=(t,c)=>`<span class="pill ${c||''}">${t}</span>`;
+
+/* ================= pestañas ================= */
+const MODS=['ruta','descriptivo','predictivo','prescriptivo','mineria','sentimientos','visualizacion','taller','herramientas','quiz'];
+const renderers={};let current='ruta';
+function showTab(id){
+  if(!MODS.includes(id))id='ruta';
+  current=id;
+  MODS.forEach(m=>{$('#m-'+m).classList.toggle('on',m===id);const t=$('#tab-'+m);t.classList.toggle('on',m===id);if(m===id)t.setAttribute('aria-current','page');else t.removeAttribute('aria-current')});
+  if(renderers[id])renderers[id]();
+  const t=$('#tab-'+id);if(t&&t.scrollIntoView)try{t.scrollIntoView({inline:'center',block:'nearest'})}catch(_){}
+}
+window.addEventListener('hashchange',()=>{showTab(location.hash.slice(1));window.scrollTo(0,0)});
+let rzT;window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(renderers[current])renderers[current]()},120)});
+
+/* ================= INICIO: juego de orden ================= */
+const STAGES=[
+  {t:'Recolectar datos',d:'Reúne información de bases transaccionales, sistemas CRM, redes sociales o sensores IoT.'},
+  {t:'Limpiar y preparar',d:'Elimina datos inconsistentes, duplicados o irrelevantes. La calidad de los datos define la del resultado.'},
+  {t:'Analizar y modelar',d:'Aplica estadística descriptiva, modelos predictivos y algoritmos de aprendizaje automático.'},
+  {t:'Visualizar y comunicar',d:'Convierte los resultados en gráficos y tableros que también entienda una audiencia no técnica.'},
+  {t:'Decidir y monitorear',d:'Actúa sobre lo aprendido y ajusta los modelos cuando el entorno cambia.'}];
+const G={order:[3,0,4,2,1],checked:false,from:null};
+function gRender(){
+  $('#g-list').innerHTML=G.order.map((si,pos)=>{
+    const s=STAGES[si];const cls=G.checked?(si===pos?' ok':' no'):'';
+    return `<li class="stage${cls}" draggable="true" data-pos="${pos}"><span class="grip" aria-hidden="true">⋮⋮</span><div class="st-t"><b>${s.t}</b><span>${s.d}</span></div><div class="mv"><button class="btn sm" data-mv="-1" aria-label="Subir: ${s.t}" ${pos===0?'disabled':''}>↑</button><button class="btn sm" data-mv="1" aria-label="Bajar: ${s.t}" ${pos===4?'disabled':''}>↓</button></div></li>`;
+  }).join('');
+}
+function gMove(from,to){const [m]=G.order.splice(from,1);G.order.splice(to,0,m);G.checked=false;$('#g-msg').textContent='';gRender()}
+$('#g-list').addEventListener('click',e=>{const b=e.target.closest('[data-mv]');if(!b)return;const pos=+b.closest('li').dataset.pos;const to=pos+ +b.dataset.mv;if(to<0||to>4)return;gMove(pos,to)});
+$('#g-list').addEventListener('dragstart',e=>{const li=e.target.closest('li');if(!li)return;G.from=+li.dataset.pos;try{e.dataTransfer.setData('text/plain',String(G.from));e.dataTransfer.effectAllowed='move'}catch(_){}});
+$('#g-list').addEventListener('dragover',e=>{if(G.from!==null)e.preventDefault()});
+$('#g-list').addEventListener('drop',e=>{const li=e.target.closest('li');if(!li||G.from===null)return;e.preventDefault();const to=+li.dataset.pos;const f=G.from;G.from=null;if(f!==to)gMove(f,to)});
+$('#g-check').addEventListener('click',()=>{G.checked=true;gRender();const ok=G.order.filter((s,p)=>s===p).length;$('#g-msg').textContent=ok===5?'¡Orden correcto! Recuerda que en la práctica el proceso es un ciclo.':`${ok} de 5 etapas están en su lugar. Revisa las marcadas en rojo.`});
+$('#g-reset').addEventListener('click',()=>{G.order=[3,0,4,2,1];G.checked=false;$('#g-msg').textContent='';gRender()});
+renderers.ruta=gRender;
+
+/* ================= DESCRIPTIVO ================= */
+const D={preset:'sim',x:135,base:[],fr:null};
+function dBase(p){const r=mulberry32(p==='sim'?7:19);const a=[];for(let i=0;i<15;i++){let v=p==='sim'?118+16*gauss(r):70+30*Math.exp(0.7*gauss(r));a.push(Math.max(45,Math.min(400,Math.round(v))))}return a}
+D.base=dBase('sim');
+function stats(a){
+  const s=[...a].sort((x,y)=>x-y);const n=s.length;const mean=s.reduce((p,c)=>p+c,0)/n;
+  const q=p=>{const pos=(n-1)*p;const lo=Math.floor(pos),hi=Math.ceil(pos);return s[lo]+(s[hi]-s[lo])*(pos-lo)};
+  const sd=Math.sqrt(s.reduce((p,c)=>p+(c-mean)**2,0)/(n-1));
+  const q1=q(.25),med=q(.5),q3=q(.75),iqr=q3-q1;
+  const cnt={};s.forEach(v=>{const b=Math.floor(v/10)*10;cnt[b]=(cnt[b]||0)+1});
+  let mb=null,mc=0;for(const b in cnt){if(cnt[b]>mc){mc=cnt[b];mb=+b}}
+  return {n,mean,med,q1,q3,iqr,sd,lo:q1-1.5*iqr,hi:q3+1.5*iqr,min:s[0],max:s[n-1],modeBin:mb,modeCount:mc};
+}
+function dRender(){
+  const w=cw('#d-dots');const all=D.base.concat([D.x]);const st=stats(all);const st0=stats(D.base);
+  const xd=[40,420];
+  $('#d-xo').textContent=fmt(D.x,0);$('#d-x').value=D.x;
+  // gráfico A: puntos + caja
+  const f=frame({w,h:218,xd,yd:[0,1],yt:null,m:{l:16,r:16,t:34,b:34},xl:'Ventas mensuales (millones de COP)',xt:ticks(40,420,Math.max(3,Math.floor((w-32)/70)))});
+  D.fr=f;
+  const r=5.5,baseY=118,bins={};let g='';
+  const inside=v=>f.sx(v);
+  // líneas de media y mediana
+  const xm=inside(st.mean),xd2=inside(st.med);
+  const lab=(x,txt,y,col)=>{let a='start',tx=x+5;if(x+112>w){a='end';tx=x-5}return `<text class="ml" style="fill:${col}" x="${tx.toFixed(1)}" y="${y}" text-anchor="${a}">${txt}</text>`};
+  g+=`<line x1="${xm.toFixed(1)}" x2="${xm.toFixed(1)}" y1="36" y2="172" style="stroke:var(--c2);stroke-width:2"/>`+`<line x1="${xd2.toFixed(1)}" x2="${xd2.toFixed(1)}" y1="36" y2="172" style="stroke:var(--c3);stroke-width:2;stroke-dasharray:5 3"/>`;
+  g+=lab(xm,'Media '+fmt(st.mean),14,'var(--c2)')+lab(xd2,'Mediana '+fmt(st.med),28,'var(--c3)');
+  // puntos apilados
+  all.forEach((v,i)=>{
+    const b=Math.round(f.sx(v)/(2*r+1));const k=bins[b]=(bins[b]||0)+1;
+    const cy=baseY-(k-1)*(2*r+1)-r,cx=f.sx(v);
+    if(i===all.length-1)g+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r+1.5}" style="fill:var(--accent);stroke:var(--ink);stroke-width:2"/><circle data-drag="1" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="20" style="fill:transparent;cursor:grab;touch-action:none"/>`;
+    else g+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r}" style="fill:var(--muted);fill-opacity:.8"/>`;
+  });
+  // caja
+  const yc=146,bh=11;
+  const wl=Math.min(...all.filter(v=>v>=st.lo)),wh=Math.max(...all.filter(v=>v<=st.hi));
+  g+=`<line x1="${f.sx(wl).toFixed(1)}" x2="${f.sx(st.q1).toFixed(1)}" y1="${yc}" y2="${yc}" style="stroke:var(--ink);stroke-width:1.5"/><line x1="${f.sx(st.q3).toFixed(1)}" x2="${f.sx(wh).toFixed(1)}" y1="${yc}" y2="${yc}" style="stroke:var(--ink);stroke-width:1.5"/>`;
+  g+=`<line x1="${f.sx(wl).toFixed(1)}" x2="${f.sx(wl).toFixed(1)}" y1="${yc-6}" y2="${yc+6}" style="stroke:var(--ink);stroke-width:1.5"/><line x1="${f.sx(wh).toFixed(1)}" x2="${f.sx(wh).toFixed(1)}" y1="${yc-6}" y2="${yc+6}" style="stroke:var(--ink);stroke-width:1.5"/>`;
+  g+=`<rect x="${f.sx(st.q1).toFixed(1)}" y="${yc-bh}" width="${Math.max(1,f.sx(st.q3)-f.sx(st.q1)).toFixed(1)}" height="${2*bh}" style="fill:var(--surface2);stroke:var(--ink);stroke-width:1.5"/>`;
+  g+=`<line x1="${xd2.toFixed(1)}" x2="${xd2.toFixed(1)}" y1="${yc-bh}" y2="${yc+bh}" style="stroke:var(--c3);stroke-width:3"/>`;
+  all.filter(v=>v<st.lo||v>st.hi).forEach(v=>{g+=`<circle cx="${f.sx(v).toFixed(1)}" cy="${yc}" r="4" style="fill:var(--surface);stroke:var(--bad);stroke-width:2"/>`});
+  g+=`<text class="tick" x="16" y="${yc+bh+16}">diagrama de caja</text>`;
+  $('#d-dots').innerHTML=svg(w,218,f.axes+g,'Puntos, media, mediana y diagrama de caja de las ventas');
+  // histograma
+  const nb=19,cnt=new Array(nb).fill(0);all.forEach(v=>{cnt[Math.min(nb-1,Math.floor((v-40)/20))]++});
+  const ymax=Math.max(...cnt)+1,step=Math.max(1,Math.ceil(ymax/4));const yt=[];for(let v=0;v<=ymax;v+=step)yt.push(v);
+  const f2=frame({w,h:170,xd,yd:[0,ymax],yt,m:{l:28,r:16,t:10,b:34},xl:'Ventas mensuales (millones de COP)',xt:ticks(40,420,Math.max(3,Math.floor((w-44)/70)))});
+  let g2='';cnt.forEach((c,i)=>{if(!c)return;const x0=f2.sx(40+i*20)+1,x1=f2.sx(40+(i+1)*20)-1;g2+=`<rect x="${x0.toFixed(1)}" y="${f2.sy(c).toFixed(1)}" width="${(x1-x0).toFixed(1)}" height="${(f2.sy(0)-f2.sy(c)).toFixed(1)}" style="fill:var(--c1);fill-opacity:.7"/>`});
+  g2+=`<line x1="${f2.sx(st.mean).toFixed(1)}" x2="${f2.sx(st.mean).toFixed(1)}" y1="10" y2="${f2.sy(0)}" style="stroke:var(--c2);stroke-width:2"/><line x1="${f2.sx(st.med).toFixed(1)}" x2="${f2.sx(st.med).toFixed(1)}" y1="10" y2="${f2.sy(0)}" style="stroke:var(--c3);stroke-width:2;stroke-dasharray:5 3"/>`;
+  $('#d-hist').innerHTML=svg(w,170,f2.axes+g2,'Histograma de las ventas');
+  // estadísticas
+  const dm=st.mean-st0.mean,dd=st.med-st0.med,sg=v=>(v>=0?'+':'−')+fmt(Math.abs(v));
+  const out=D.x<st.lo||D.x>st.hi;
+  const msg=Math.abs(dm)>2*Math.abs(dd)+1?'La media siguió a tu punto y la mediana casi no se movió: la mediana es más robusta ante valores extremos.':'Con un valor cerca del centro, la media y la mediana se mueven poco.';
+  $('#d-stats').innerHTML=`<h3>Resumen estadístico</h3><dl class="kv">
+    <dt>Datos (n)</dt><dd>${st.n}</dd>
+    <dt><i class="sw" style="background:var(--c2)"></i>Media</dt><dd>${fmt(st.mean)}</dd>
+    <dt><i class="sw" style="background:var(--c3)"></i>Mediana</dt><dd>${fmt(st.med)}</dd>
+    <dt>Moda (intervalos de 10)</dt><dd>${st.modeCount>1?st.modeBin+'–'+(st.modeBin+10):'sin moda clara'}</dd>
+    <dt>Desviación estándar</dt><dd>${fmt(st.sd)}</dd>
+    <dt>Q1 · Q3</dt><dd>${fmt(st.q1)} · ${fmt(st.q3)}</dd>
+    <dt>Rango intercuartílico</dt><dd>${fmt(st.iqr)}</dd>
+    </dl>
+    <p class="note">${out?pill('Tu punto es atípico','bad'):pill('Tu punto está dentro de lo normal','ok')} Está ${out?'fuera':'dentro'} de los límites de ${fmt(st.lo,0)} a ${fmt(st.hi,0)}.</p>
+    <p class="note"><b>Efecto de tu punto:</b> media ${sg(dm)}, mediana ${sg(dd)}. ${msg}</p>`;
+  dCode();
+}
+setupDrag($('#d-dots'),px=>{if(!D.fr)return;const v=40+(px-D.fr.m.l)/D.fr.pw*380;D.x=Math.round(Math.max(40,Math.min(420,v)));dRender()});
+$('#d-x').addEventListener('input',e=>{D.x=+e.target.value;dRender()});
+$('#d-atip').addEventListener('click',()=>{D.x=400;dRender()});
+function dPreset(p){D.preset=p;D.base=dBase(p);$('#d-p-sim').classList.toggle('on',p==='sim');$('#d-p-ses').classList.toggle('on',p==='ses');dRender()}
+$('#d-p-sim').addEventListener('click',()=>dPreset('sim'));$('#d-p-ses').addEventListener('click',()=>dPreset('ses'));
+const dCode=codePanel('code-desc',()=>[
+{label:'Python',code:`import pandas as pd
+import matplotlib.pyplot as plt
+
+ventas = pd.read_csv("ventas.csv")           # 1. cargar los datos
+col = ventas["ventas"]
+
+print(col.describe())                         # n, media, desv. estándar, cuartiles
+print("mediana:", col.median())
+print("moda:", col.mode()[0])
+
+col.plot.hist(bins=19)                        # histograma
+plt.show()
+ventas.boxplot(column="ventas")               # caja y bigotes: muestra atípicos
+plt.show()`},
+{label:'R',code:`ventas <- read.csv("ventas.csv")              # 1. cargar los datos
+
+summary(ventas$ventas)                        # mínimo, cuartiles, media, máximo
+sd(ventas$ventas)                             # desviación estándar
+median(ventas$ventas)
+
+hist(ventas$ventas, breaks = 19)              # histograma
+boxplot(ventas$ventas)                        # caja y bigotes: muestra atípicos`}]);
+renderers.descriptivo=dRender;
+
+/* ================= PREDICTIVO ================= */
+const P={seed:11,noise:6,deg:2,inv:6,pts:[]};
+function pGen(){const r=mulberry32(P.seed);const pts=[];for(let i=0;i<36;i++){const x=+(r()*10).toFixed(2);const t=30+9*x-0.55*x*x;pts.push({x,y:+(t+P.noise*gauss(r)).toFixed(2),train:i%3!==0})}P.pts=pts}
+pGen();
+function polyfit(xs,ys,d){
+  const n=d+1;const A=Array.from({length:n},()=>new Array(n+1).fill(0));
+  for(let k=0;k<xs.length;k++){const xn=(xs[k]-5)/5;const pw=[1];for(let j=1;j<2*n;j++)pw[j]=pw[j-1]*xn;
+    for(let i=0;i<n;i++){for(let j=0;j<n;j++)A[i][j]+=pw[i+j];A[i][n]+=pw[i]*ys[k]}}
+  for(let i=0;i<n;i++)A[i][i]+=1e-9;
+  for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;const tmp=A[i];A[i]=A[p];A[p]=tmp;
+    for(let r=i+1;r<n;r++){const f=A[r][i]/A[i][i];for(let c=i;c<=n;c++)A[r][c]-=f*A[i][c]}}
+  const w=new Array(n).fill(0);for(let i=n-1;i>=0;i--){let s=A[i][n];for(let j=i+1;j<n;j++)s-=A[i][j]*w[j];w[i]=s/A[i][i]}
+  return w;
+}
+const polyval=(w,x)=>{const xn=(x-5)/5;let s=0,p=1;for(let i=0;i<w.length;i++){s+=w[i]*p;p*=xn}return s};
+const rmse=(w,a)=>Math.sqrt(a.reduce((s,p)=>s+(polyval(w,p.x)-p.y)**2,0)/a.length);
+function pRender(){
+  $('#p-dego').textContent=P.deg;$('#p-noiseo').textContent=P.noise;$('#p-invo').textContent=fmt(P.inv,1);
+  const tr=P.pts.filter(p=>p.train),te=P.pts.filter(p=>!p.train);
+  const fitFor=d=>polyfit(tr.map(p=>p.x),tr.map(p=>p.y),d);
+  const W=fitFor(P.deg);
+  const errs=[];for(let d=1;d<=9;d++){const wd=fitFor(d);errs.push({d,tr:rmse(wd,tr),te:rmse(wd,te)})}
+  const best=errs.reduce((a,b)=>b.te<a.te?b:a);
+  const cur=errs[P.deg-1];
+  // gráfico principal
+  const w=cw('#p-chart');
+  const ys=P.pts.map(p=>p.y);const yd=[Math.floor((Math.min(...ys)-6)/10)*10,Math.ceil((Math.max(...ys)+6)/10)*10];
+  const f=frame({w,h:300,xd:[0,10],yd,xl:'Inversión en publicidad (millones de COP)',yl:'Ventas (millones de COP)'});
+  let d='';for(let i=0;i<=120;i++){const x=i/12;d+=(i?'L':'M')+f.sx(x).toFixed(1)+' '+f.sy(polyval(W,x)).toFixed(1)}
+  let g=`<clipPath id="pclip"><rect x="${f.m.l}" y="${f.m.t}" width="${f.pw}" height="${f.ph}"/></clipPath><g clip-path="url(#pclip)">`;
+  g+=`<path d="${d}" style="fill:none;stroke:var(--c2);stroke-width:2.5"/>`;
+  tr.forEach(p=>{g+=`<circle cx="${f.sx(p.x).toFixed(1)}" cy="${f.sy(p.y).toFixed(1)}" r="4" style="fill:var(--c1);fill-opacity:.9"/>`});
+  te.forEach(p=>{g+=`<circle cx="${f.sx(p.x).toFixed(1)}" cy="${f.sy(p.y).toFixed(1)}" r="4.5" style="fill:var(--surface);stroke:var(--c3);stroke-width:2"/>`});
+  const py=polyval(W,P.inv);
+  g+=`<line x1="${f.sx(P.inv).toFixed(1)}" x2="${f.sx(P.inv).toFixed(1)}" y1="${f.m.t}" y2="${f.m.t+f.ph}" style="stroke:var(--ink);stroke-width:1;stroke-dasharray:4 3;stroke-opacity:.6"/>`;
+  g+=`<circle cx="${f.sx(P.inv).toFixed(1)}" cy="${f.sy(py).toFixed(1)}" r="6" style="fill:var(--accent);stroke:var(--ink);stroke-width:2"/></g>`;
+  $('#p-chart').innerHTML=svg(w,300,f.axes+g,'Puntos de entrenamiento y prueba con la curva del modelo');
+  // gráfico de errores
+  const cap=Math.min(Math.max(...errs.map(e=>Math.max(e.tr,e.te))),Math.max(best.te*5,10));
+  const w2=cw('#p-err');
+  const f2=frame({w:w2,h:210,xd:[1,9],yd:[0,cap*1.05],xt:[1,2,3,4,5,6,7,8,9],xl:'Grado del polinomio (complejidad)',yl:'RMSE'});
+  const path=k=>errs.map((e,i)=>(i?'L':'M')+f2.sx(e.d).toFixed(1)+' '+f2.sy(e[k]).toFixed(1)).join('');
+  let g2=`<clipPath id="eclip"><rect x="${f2.m.l}" y="${f2.m.t}" width="${f2.pw}" height="${f2.ph}"/></clipPath><g clip-path="url(#eclip)">`;
+  g2+=`<line x1="${f2.sx(P.deg).toFixed(1)}" x2="${f2.sx(P.deg).toFixed(1)}" y1="${f2.m.t}" y2="${f2.m.t+f2.ph}" style="stroke:var(--ink);stroke-width:1;stroke-dasharray:4 3;stroke-opacity:.6"/>`;
+  g2+=`<path d="${path('tr')}" style="fill:none;stroke:var(--c1);stroke-width:2.5"/><path d="${path('te')}" style="fill:none;stroke:var(--c3);stroke-width:2.5"/>`;
+  errs.forEach(e=>{g2+=`<circle cx="${f2.sx(e.d).toFixed(1)}" cy="${f2.sy(e.tr).toFixed(1)}" r="${e.d===P.deg?5.5:3}" style="fill:var(--c1)"/><circle cx="${f2.sx(e.d).toFixed(1)}" cy="${f2.sy(e.te).toFixed(1)}" r="${e.d===P.deg?5.5:3}" style="fill:var(--c3)"/>`});
+  g2+='</g>';
+  $('#p-err').innerHTML=svg(w2,210,f2.axes+g2,'Error de entrenamiento y de prueba según el grado');
+  // diagnóstico
+  let diag;
+  if(P.deg<best.d&&cur.te>best.te*1.12)diag=pill('Subajuste: el modelo es demasiado simple','warn');
+  else if(P.deg>best.d&&cur.te>best.te*1.12)diag=pill('Sobreajuste: memoriza el ruido','bad');
+  else diag=pill('Buen equilibrio','ok');
+  $('#p-stats').innerHTML=`<h3>Cómo le va al modelo</h3><dl class="kv">
+    <dt>Grado actual</dt><dd>${P.deg}</dd>
+    <dt><i class="sw" style="background:var(--c1)"></i>Error en entrenamiento</dt><dd>${fmt(cur.tr,2)}</dd>
+    <dt><i class="sw" style="background:var(--c3)"></i>Error en prueba</dt><dd>${fmt(cur.te,2)}</dd>
+    <dt>Mejor grado en prueba</dt><dd>${best.d}</dd>
+    <dt>Predicción con ${fmt(P.inv,1)} M COP</dt><dd>${Math.abs(py)<1e5?fmt(py,1)+' M COP':'fuera de rango'}</dd></dl>
+    <p class="note">${diag}</p>`;
+  pCode();
+}
+$('#p-deg').addEventListener('input',e=>{P.deg=+e.target.value;pRender()});
+$('#p-noise').addEventListener('input',e=>{P.noise=+e.target.value;pGen();pRender()});
+$('#p-inv').addEventListener('input',e=>{P.inv=+e.target.value;pRender()});
+$('#p-regen').addEventListener('click',()=>{P.seed=Math.floor(Math.random()*100000)+1;pGen();pRender()});
+const pCode=codePanel('code-pred',()=>[
+{label:'Python (scikit-learn)',code:`import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import mean_squared_error
+
+datos = pd.read_csv("publicidad_ventas.csv")
+X = datos[["publicidad"]]
+y = datos["ventas"]
+
+# separar entrenamiento y prueba: el modelo nunca ve los datos de prueba
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.33, random_state=42)
+
+modelo = make_pipeline(PolynomialFeatures(degree=${P.deg}), LinearRegression())
+modelo.fit(X_tr, y_tr)
+
+rmse = lambda real, pred: mean_squared_error(real, pred) ** 0.5
+print("Error entrenamiento:", rmse(y_tr, modelo.predict(X_tr)))
+print("Error prueba:", rmse(y_te, modelo.predict(X_te)))
+print("Predicción con ${fmt(P.inv,1)}:", modelo.predict(pd.DataFrame({"publicidad": [${P.inv}]})))`},
+{label:'R',code:`datos <- read.csv("publicidad_ventas.csv")
+
+set.seed(42)
+idx   <- sample(nrow(datos), size = round(0.67 * nrow(datos)))
+train <- datos[idx, ]       # entrenamiento
+test  <- datos[-idx, ]      # prueba: el modelo nunca la ve
+
+modelo <- lm(ventas ~ poly(publicidad, ${P.deg}), data = train)
+
+rmse <- function(real, pred) sqrt(mean((real - pred)^2))
+rmse(train$ventas, predict(modelo, train))
+rmse(test$ventas,  predict(modelo, test))
+predict(modelo, data.frame(publicidad = ${P.inv}))`}]);
+renderers.predictivo=pRender;
+
+/* ================= PRESCRIPTIVO ================= */
+const R={pa:40,pb:30,H:100,M:80,a:20,b:20};
+function rGeom(){
+  const {H,M,pa,pb}=R;const ax=Math.min(H/2,M),by=Math.min(H,M/2);
+  const poly=[[0,0],[ax,0]];const ia=(2*H-M)/3,ib=(2*M-H)/3;
+  if(ia>=0&&ib>=0)poly.push([ia,ib]);poly.push([0,by]);
+  let opt=poly[0];poly.forEach(p=>{if(pa*p[0]+pb*p[1]>pa*opt[0]+pb*opt[1])opt=p});
+  return {poly,opt,maxA:Math.max(H/2,M),maxB:Math.max(H,M/2)};
+}
+function rRender(){
+  const {H,M,pa,pb}=R;const G2=rGeom();
+  const sa=$('#r-a'),sb=$('#r-b');sa.max=Math.floor(G2.maxA);sb.max=Math.floor(G2.maxB);
+  R.a=Math.max(0,Math.min(Math.floor(G2.maxA),R.a));R.b=Math.max(0,Math.min(Math.floor(G2.maxB),R.b));
+  sa.value=R.a;sb.value=R.b;
+  $('#r-ao').textContent=fmt(R.a,0);$('#r-bo').textContent=fmt(R.b,0);$('#r-pao').textContent=pa;$('#r-pbo').textContent=pb;$('#r-ho').textContent=H;$('#r-mo').textContent=M;
+  const w=cw('#r-chart');
+  const xd=[0,G2.maxA*1.08],yd=[0,G2.maxB*1.08];
+  const f=frame({w,h:320,xd,yd,xl:'Latte',yl:'Cold brew'});
+  const P2=(a,b)=>f.sx(a).toFixed(1)+','+f.sy(b).toFixed(1);
+  const profit=pa*R.a+pb*R.b;
+  const feas=2*R.a+R.b<=H+1e-9&&R.a+2*R.b<=M+1e-9;
+  let g=`<clipPath id="rclip"><rect x="${f.m.l}" y="${f.m.t}" width="${f.pw}" height="${f.ph}"/></clipPath><g clip-path="url(#rclip)">`;
+  g+=`<polygon points="${G2.poly.map(p=>P2(p[0],p[1])).join(' ')}" style="fill:var(--c1);fill-opacity:.2;stroke:var(--c1);stroke-width:1.5"/>`;
+  g+=`<line x1="${f.sx(0).toFixed(1)}" y1="${f.sy(H).toFixed(1)}" x2="${f.sx(H/2).toFixed(1)}" y2="${f.sy(0).toFixed(1)}" style="stroke:var(--c2);stroke-width:2.5"/>`;
+  g+=`<line x1="${f.sx(0).toFixed(1)}" y1="${f.sy(M/2).toFixed(1)}" x2="${f.sx(M).toFixed(1)}" y2="${f.sy(0).toFixed(1)}" style="stroke:var(--c3);stroke-width:2.5"/>`;
+  if(profit>0)g+=`<line x1="${f.sx(0).toFixed(1)}" y1="${f.sy(profit/pb).toFixed(1)}" x2="${f.sx(profit/pa).toFixed(1)}" y2="${f.sy(0).toFixed(1)}" style="stroke:var(--ink);stroke-width:1.5;stroke-dasharray:6 4;stroke-opacity:.6"/>`;
+  g+=`</g>`;
+  const o=G2.opt;const ox=f.sx(o[0]),oy=f.sy(o[1]);
+  g+=`<circle cx="${ox.toFixed(1)}" cy="${oy.toFixed(1)}" r="8" style="fill:var(--surface);stroke:var(--c1);stroke-width:3"/>`;
+  const la=ox>w-100?'end':'start';
+  g+=`<text class="ml" style="fill:var(--ink)" x="${(la==='start'?ox+13:ox-13).toFixed(1)}" y="${(oy-10).toFixed(1)}" text-anchor="${la}">óptimo</text>`;
+  const ux=f.sx(R.a),uy=f.sy(R.b);
+  g+=`<circle cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="8" style="fill:${feas?'var(--accent)':'var(--bad)'};stroke:var(--ink);stroke-width:2"/><circle data-drag="1" cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="20" style="fill:transparent;cursor:grab;touch-action:none"/>`;
+  R.fr=f;R.xd=xd;R.yd=yd;
+  $('#r-chart').innerHTML=svg(w,320,f.axes+g,'Región factible de producción de latte y cold brew');
+  $('#r-legend').innerHTML=`<span><i class="sw" style="background:var(--c2)"></i>Horas: 2·latte + 1·cold brew ≤ ${H}</span><span><i class="sw" style="background:var(--c3)"></i>Café: 1·latte + 2·cold brew ≤ ${M}</span><span><i class="sw" style="background:var(--ink);opacity:.6"></i>Línea de igual ganancia de tu plan</span>`;
+  const optP=pa*o[0]+pb*o[1];
+  const pct=optP>0?profit/optP*100:0;
+  $('#r-stats').innerHTML=`<h3>Tu plan frente al óptimo</h3><dl class="kv">
+    <dt>Tu plan</dt><dd>${fmt(R.a,0)} latte · ${fmt(R.b,0)} cold brew</dd>
+    <dt>Ganancia de tu plan</dt><dd>${fmt(profit,0)} mil COP</dd>
+    <dt>Horas usadas</dt><dd>${fmt(2*R.a+R.b,0)} / ${H}</dd>
+    <dt>Café usada</dt><dd>${fmt(R.a+2*R.b,0)} / ${M}</dd>
+    <dt>Plan óptimo</dt><dd>${fmt(o[0],1)} latte · ${fmt(o[1],1)} cold brew</dd>
+    <dt>Ganancia óptima</dt><dd>${fmt(optP,0)} mil COP</dd></dl>
+    <p class="note">${feas?pill('Plan factible','ok'):pill('Plan no factible: te pasas de un recurso','bad')} ${feas?'Capturas '+fmt(pct,0)+' % de la ganancia óptima.':''}</p>`;
+  rCode();
+}
+setupDrag($('#r-chart'),(px,py)=>{const f=R.fr;if(!f)return;const a=R.xd[0]+(px-f.m.l)/f.pw*(R.xd[1]-R.xd[0]);const b=R.yd[0]+(f.m.t+f.ph-py)/f.ph*(R.yd[1]-R.yd[0]);R.a=Math.max(0,Math.round(a));R.b=Math.max(0,Math.round(b));rRender()});
+[['r-a','a'],['r-b','b'],['r-pa','pa'],['r-pb','pb'],['r-h','H'],['r-m','M']].forEach(([id,k])=>$('#'+id).addEventListener('input',e=>{R[k]=+e.target.value;rRender()}));
+$('#r-opt').addEventListener('click',()=>{const o=rGeom().opt;R.a=o[0];R.b=o[1];rRender()});
+$('#r-reset').addEventListener('click',()=>{R.a=20;R.b=20;rRender()});
+const rCode=codePanel('code-presc',()=>[
+{label:'Python (SciPy)',code:`from scipy.optimize import linprog
+
+# Maximizar ${R.pa}*latte + ${R.pb}*cold brew.
+# linprog minimiza, por eso la función objetivo lleva signo negativo.
+c = [-${R.pa}, -${R.pb}]
+
+A_ub = [[2, 1],      # horas de barista por mesa y por silla
+        [1, 2]]      # kg de café por mesa y por silla
+b_ub = [${R.H}, ${R.M}]       # horas y café disponibles
+
+res = linprog(c, A_ub=A_ub, b_ub=b_ub, bounds=[(0, None), (0, None)])
+print("latte y cold brew:", res.x)
+print("ganancia máxima:", -res.fun)`},
+{label:'R (lpSolve)',code:`library(lpSolve)
+
+res <- lp(
+  direction    = "max",
+  objective.in = c(${R.pa}, ${R.pb}),               # ganancia por mesa y por silla
+  const.mat    = matrix(c(2, 1,                # horas por mesa y por silla
+                          1, 2),               # café por mesa y por silla
+                        nrow = 2, byrow = TRUE),
+  const.dir    = c("<=", "<="),
+  const.rhs    = c(${R.H}, ${R.M})                   # horas y café disponibles
+)
+res$solution    # latte y cold brew
+res$objval      # ganancia máxima`}]);
+renderers.prescriptivo=rRender;
+
+/* ================= MINERÍA: k-means ================= */
+function kGen(){const r=mulberry32(5);const cs=[[24,30],[72,34],[50,78]];const out=[];cs.forEach(c=>{for(let i=0;i<30;i++)out.push({x:Math.max(2,Math.min(98,c[0]+9*gauss(r))),y:Math.max(2,Math.min(98,c[1]+9*gauss(r)))})});return out}
+const K={pts:kGen(),k:3,seed:1,c:[],a:null,iter:0,done:false,elbow:[]};
+const kInit=(pts,k,seed)=>{const r=mulberry32(seed*97+k*13+1);const idx=[];while(idx.length<k){const j=Math.floor(r()*pts.length);if(!idx.includes(j))idx.push(j)}return idx.map(j=>({x:pts[j].x,y:pts[j].y}))};
+const kAssign=(pts,c)=>pts.map(p=>{let b=0,bd=Infinity;c.forEach((q,i)=>{const d=(p.x-q.x)**2+(p.y-q.y)**2;if(d<bd){bd=d;b=i}});return b});
+const kUpdate=(pts,a,c)=>c.map((q,i)=>{const m=pts.filter((_,j)=>a[j]===i);return m.length?{x:m.reduce((s,p)=>s+p.x,0)/m.length,y:m.reduce((s,p)=>s+p.y,0)/m.length}:q});
+const kInertia=(pts,a,c)=>pts.reduce((s,p,j)=>s+(p.x-c[a[j]].x)**2+(p.y-c[a[j]].y)**2,0);
+function kRun(pts,k,seed){let c=kInit(pts,k,seed),a=null;for(let it=0;it<60;it++){const na=kAssign(pts,c);if(a&&na.every((v,i)=>v===a[i])){a=na;break}a=na;c=kUpdate(pts,a,c)}return {c,a,inertia:kInertia(pts,a,c)}}
+function kElbow(){K.elbow=[];for(let k=1;k<=7;k++){let best=null;for(let s=1;s<=8;s++){const r=kRun(K.pts,k,s*31+k);if(!best||r.inertia<best.inertia)best=r}K.elbow.push(best.inertia)}}
+function kReset(newSeed){if(newSeed)K.seed++;K.c=kInit(K.pts,K.k,K.seed);K.a=null;K.iter=0;K.done=false}
+function kStep(){
+  if(K.done)return;
+  const na=kAssign(K.pts,K.c);
+  if(K.a&&na.every((v,i)=>v===K.a[i])){K.done=true;return}
+  K.a=na;K.c=kUpdate(K.pts,na,K.c);K.iter++;
+}
+function kRender(){
+  $('#k-ko').textContent=K.k;
+  const w=cw('#k-chart');const f=frame({w,h:330,xd:[0,100],yd:[0,100],xl:'Frecuencia de compra (índice 0–100)',yl:'Gasto promedio (índice 0–100)',xt:[0,20,40,60,80,100],yt:[0,20,40,60,80,100]});
+  K.fr=f;let g='';
+  K.pts.forEach((p,j)=>{const col=K.a?CC[K.a[j]]:'var(--muted)';g+=`<circle cx="${f.sx(p.x).toFixed(1)}" cy="${f.sy(p.y).toFixed(1)}" r="4.5" style="fill:${col};fill-opacity:.85"/>`});
+  K.c.forEach((q,i)=>{const x=f.sx(q.x),y=f.sy(q.y);g+=`<path d="M${x.toFixed(1)} ${(y-9).toFixed(1)} L${(x+9).toFixed(1)} ${y.toFixed(1)} L${x.toFixed(1)} ${(y+9).toFixed(1)} L${(x-9).toFixed(1)} ${y.toFixed(1)} Z" style="fill:${CC[i]};stroke:var(--ink);stroke-width:2"/>`});
+  $('#k-chart').innerHTML=svg(w,330,f.axes+g,'Clientes agrupados con k-means');
+  $('#k-status').textContent=K.done?`Convergió en ${K.iter} iteraciones: las asignaciones ya no cambian.`:K.a?`Iteración ${K.iter}. Pulsa «Paso» otra vez; si nada cambia, el algoritmo terminó.`:'Los rombos son los centros iniciales, elegidos al azar. Pulsa «Paso».';
+  if(K.a){
+    const rows=K.c.map((_,i)=>{const m=K.pts.filter((_,j)=>K.a[j]===i);const n=m.length;return `<tr><td><i class="sw" style="background:${CC[i]}"></i>Grupo ${i+1}</td><td class="n">${n}</td><td class="n">${n?fmt(m.reduce((s,p)=>s+p.x,0)/n,0):'–'}</td><td class="n">${n?fmt(m.reduce((s,p)=>s+p.y,0)/n,0):'–'}</td></tr>`}).join('');
+    $('#k-table').innerHTML=`<table class="tbl"><tr><th>Grupo</th><th>Clientes</th><th>Frecuencia media</th><th>Gasto medio</th></tr>${rows}</table>`;
+  }else $('#k-table').innerHTML='';
+  // codo
+  const w2=cw('#k-elbow');const emax=Math.max(...K.elbow);
+  const f2=frame({w:w2,h:230,xd:[1,7],yd:[0,emax*1.05],xt:[1,2,3,4,5,6,7],xl:'Número de grupos (k)',yl:'Inercia',yf:v=>fmt(v/1000,0)+' mil'});
+  const d=K.elbow.map((v,i)=>(i?'L':'M')+f2.sx(i+1).toFixed(1)+' '+f2.sy(v).toFixed(1)).join('');
+  let g2=`<path d="${d}" style="fill:none;stroke:var(--c2);stroke-width:2.5"/>`;
+  K.elbow.forEach((v,i)=>{g2+=`<circle cx="${f2.sx(i+1).toFixed(1)}" cy="${f2.sy(v).toFixed(1)}" r="${i+1===K.k?6.5:3.5}" style="fill:${i+1===K.k?'var(--accent)':'var(--c2)'};stroke:var(--ink);stroke-width:${i+1===K.k?2:0}"/>`});
+  $('#k-elbow').innerHTML=svg(w2,230,f2.axes+g2,'Método del codo');
+  kCode();
+}
+$('#k-chart').addEventListener('click',e=>{
+  const s=$('#k-chart svg');if(!s||!K.fr)return;const r=s.getBoundingClientRect();const f=K.fr;
+  const px=e.clientX-r.left,py=e.clientY-r.top;
+  if(px<f.m.l||px>f.m.l+f.pw||py<f.m.t||py>f.m.t+f.ph)return;
+  K.pts.push({x:(px-f.m.l)/f.pw*100,y:(f.m.t+f.ph-py)/f.ph*100});K.a=null;K.done=false;kElbow();kRender();
+});
+$('#k-k').addEventListener('input',e=>{K.k=+e.target.value;kReset(false);kRender()});
+$('#k-step').addEventListener('click',()=>{kStep();kRender()});
+$('#k-run').addEventListener('click',()=>{for(let i=0;i<60&&!K.done;i++)kStep();kRender()});
+$('#k-reset').addEventListener('click',()=>{kReset(true);kRender()});
+kElbow();kReset(false);
+
+/* ================= MINERÍA: asociación ================= */
+const ITEMS=['Pan','Leche','Huevos','Café','Azúcar','Cereal','Pañales','Cerveza'];
+function aGen(){const r=mulberry32(21);const out=[];const p=q=>r()<q;
+  for(let i=0;i<60;i++){const s=new Set();const pan=p(.45);if(pan)s.add('Pan');
+    if(p(pan?.7:.25))s.add('Leche');if(p(pan?.5:.2))s.add('Huevos');
+    const caf=p(.35);if(caf)s.add('Café');if(p(caf?.75:.1))s.add('Azúcar');
+    if(p(s.has('Leche')?.5:.1))s.add('Cereal');
+    const pa=p(.15);if(pa)s.add('Pañales');if(p(pa?.65:.15))s.add('Cerveza');
+    while(s.size<2)s.add(ITEMS[Math.floor(r()*ITEMS.length)]);
+    out.push([...s])}
+  return out}
+const A={b:aGen(),sup:12,conf:60};
+function aRules(){
+  const B=A.b,N=B.length,cnt={},pair={};
+  B.forEach(b=>{b.forEach(i=>{cnt[i]=(cnt[i]||0)+1});b.forEach(x=>b.forEach(y=>{if(x!==y){const k=x+'|'+y;pair[k]=(pair[k]||0)+1}}))});
+  const out=[];for(const k in pair){const [x,y]=k.split('|');const sup=pair[k]/N,conf=pair[k]/cnt[x],lift=conf/(cnt[y]/N);if(sup>=A.sup/100&&conf>=A.conf/100)out.push({x,y,sup,conf,lift})}
+  out.sort((p,q)=>q.lift-p.lift);return out;
+}
+function aRender(){
+  $('#a-supo').textContent=A.sup+' %';$('#a-confo').textContent=A.conf+' %';
+  $('#a-baskets').innerHTML='<span class="note" style="margin:0">Algunas cestas:</span>'+A.b.slice(0,4).map(b=>`<span class="pill">${b.join(' + ')}</span>`).join('');
+  const rs=aRules();
+  $('#a-count').textContent=`${rs.length} reglas cumplen los umbrales, de 56 posibles entre ocho productos.`;
+  $('#a-table').innerHTML=rs.length?`<table class="tbl"><tr><th>Si compra…</th><th>…también compra</th><th>Soporte</th><th>Confianza</th><th>Lift</th><th></th></tr>${rs.slice(0,10).map(r=>`<tr><td>${r.x}</td><td>${r.y}</td><td class="n">${fmt(r.sup*100,0)} %</td><td class="n">${fmt(r.conf*100,0)} %</td><td class="n">${fmt(r.lift,2)}</td><td>${r.lift>=1.2?pill('asociación','ok'):r.lift>=0.9?pill('independientes'):pill('se evitan','warn')}</td></tr>`).join('')}</table>`:'<p class="note">Ninguna regla cumple. Baja los umbrales.</p>';
+  kCode();
+}
+$('#a-sup').addEventListener('input',e=>{A.sup=+e.target.value;aRender()});
+$('#a-conf').addEventListener('input',e=>{A.conf=+e.target.value;aRender()});
+const kCode=codePanel('code-min',()=>[
+{label:'Python · k-means',code:`import pandas as pd
+from sklearn.cluster import KMeans
+
+clientes = pd.read_csv("clientes.csv")
+X = clientes[["frecuencia", "gasto"]]
+
+km = KMeans(n_clusters=${K.k}, n_init=10, random_state=42)
+clientes["grupo"] = km.fit_predict(X)
+
+print(clientes.groupby("grupo")[["frecuencia", "gasto"]].mean())
+print("inercia:", km.inertia_)          # úsala para el método del codo`},
+{label:'R · k-means',code:`clientes <- read.csv("clientes.csv")
+X <- clientes[, c("frecuencia", "gasto")]
+
+set.seed(42)
+km <- kmeans(X, centers = ${K.k}, nstart = 10)
+clientes$grupo <- km$cluster
+
+aggregate(X, by = list(grupo = clientes$grupo), FUN = mean)
+km$tot.withinss                          # inercia, para el método del codo`},
+{label:'Python · asociación',code:`import pandas as pd
+from mlxtend.frequent_patterns import apriori, association_rules
+
+# cestas.csv: una fila por cesta, una columna por producto (True / False)
+cestas = pd.read_csv("cestas.csv").astype(bool)
+
+frecuentes = apriori(cestas, min_support=${(A.sup/100).toFixed(2)}, use_colnames=True)
+reglas = association_rules(frecuentes, metric="confidence", min_threshold=${(A.conf/100).toFixed(2)})
+
+print(reglas[["antecedents", "consequents", "support", "confidence", "lift"]]
+      .sort_values("lift", ascending=False))`},
+{label:'R · asociación',code:`library(arules)
+
+# cestas.csv: una cesta por línea, productos separados por coma
+cestas <- read.transactions("cestas.csv", format = "basket", sep = ",")
+
+reglas <- apriori(cestas, parameter = list(supp = ${(A.sup/100).toFixed(2)}, conf = ${(A.conf/100).toFixed(2)}))
+inspect(sort(reglas, by = "lift"))`}]);
+renderers.mineria=()=>{kRender();aRender()};
+
+/* ================= SENTIMIENTOS ================= */
+const LEX={};const addLex=(v,ws)=>ws.split(' ').forEach(x=>{LEX[x]=v});
+addLex(2,'excelente increible perfecto perfecta fantastico fantastica maravilloso maravillosa genial encanta encanto espectacular');
+addLex(1,'bueno buena buenos buenas rapido rapida recomiendo recomendable feliz satisfecho satisfecha mejor amable util calidad comodo comoda barato barata bonito bonita gracias facil eficiente puntual');
+addLex(-2,'terrible horrible pesimo pesima odio estafa peor inservible desastre');
+addLex(-1,'malo mala malos malas lento lenta lentos decepcionante decepcionado decepcionada roto rota caro defectuoso defectuosa tarde dificil problema problemas queja quejas falla fallas demora demoro tardo danado sucio');
+const NEGS=new Set(['no','nunca','jamas','ni','tampoco','sin','poco','ninguna','ninguno']);
+const INTS={muy:1.5,super:1.5,demasiado:1.5,bastante:1.3,tan:1.3};
+const BRK=new Set(['pero','aunque','sino']);
+const STOP=new Set('el la los las un una unos unas de del y o que en con por para es fue son era muy pero a al lo se me mi su sus mas ya hay como si solo todo tan esto este esta e ni'.split(' '));
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function sentiment(text){
+  const raw=text.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g)||[];const toks=raw.map(norm);let sum=0;const items=[];
+  toks.forEach((t,i)=>{
+    let v=LEX[t];
+    if(v===undefined){items.push({w:raw[i],v:null});return}
+    let neg=null,mult=1;
+    for(let j=i-1;j>=Math.max(0,i-3);j--){const p=toks[j];if(BRK.has(p))break;if(NEGS.has(p)&&!neg)neg=raw[j];if(j===i-1&&INTS[p])mult=INTS[p]}
+    v=v*mult;if(neg)v=-v*0.7;sum+=v;items.push({w:raw[i],v,neg,mult});
+  });
+  const comp=sum/Math.sqrt(sum*sum+15);
+  const label=comp>=0.15?'positivo':comp<=-0.15?'negativo':'neutral';
+  return {raw,items,sum,comp,label,hits:items.filter(i=>i.v!==null).length};
+}
+const chips=items=>items.map(i=>i.v===null?`<span class="tk">${esc(i.w)}</span>`:`<span class="tk ${i.v>0?'pos':'neg'}" title="${i.neg?'Negado por «'+esc(i.neg)+'»':''}${i.mult>1?' · intensificado':''}">${esc(i.w)}<sup>${i.v>0?'+':'−'}${fmt(Math.abs(i.v),1)}</sup>${i.neg?`<small>¬ ${esc(i.neg)}</small>`:''}</span>`).join(' ');
+const lblPill=l=>pill(l,l==='positivo'?'ok':l==='negativo'?'bad':'');
+const EX=['Excelente producto, llegó rápido y la calidad es muy buena','No es malo, pero la entrega fue muy lenta','Pésimo servicio, nunca más compro aquí','Qué maravilloso esperar una hora por un café','Cumple con lo prometido'];
+$('#s-ex').innerHTML='<span class="note" style="margin:0">Ejemplos:</span>'+EX.map((t,i)=>`<button class="btn sm" data-ex="${i}">${esc(t.length>30?t.slice(0,28)+'…':t)}</button>`).join('');
+$('#s-ex').addEventListener('click',e=>{const b=e.target.closest('[data-ex]');if(!b)return;$('#s-in').value=EX[+b.dataset.ex];sOne()});
+function sOne(){
+  const r=sentiment($('#s-in').value);
+  const pos=Math.max(0,Math.min(100,(r.comp+1)/2*100));
+  $('#s-out').innerHTML=`<div class="gauge" aria-hidden="true"><i style="left:${pos}%"></i></div><div class="gl"><span>−1 negativo</span><span>0</span><span>positivo +1</span></div>
+    <p class="note"><b>Puntaje compuesto: ${fmt(r.comp,2)}</b> ${lblPill(r.label)}</p>
+    <p class="note" style="margin-bottom:4px"><b>Palabra por palabra</b> (tokens)</p><div>${r.items.length?chips(r.items):'<span class="note">Escribe algo para analizar.</span>'}</div>
+    <ol class="note" style="padding-left:20px;color:var(--muted)"><li>Se pasa a minúsculas y se quitan tildes.</li><li>Se separa en ${r.items.length} palabras.</li><li>${r.hits} palabras están en el léxico.</li><li>Las negaciones («no», «nunca») invierten el signo y las intensificadores («muy») lo multiplican.</li><li>Se suman los puntos (${fmt(r.sum,1)}) y se normaliza entre −1 y +1.</li></ol>`;
+}
+$('#s-in').addEventListener('input',sOne);
+const BATCH=`Excelente café, llegó rápido y la calidad es muy buena
+El domicilio fue muy lento y el vaso llegó roto
+No es malo, pero esperaba más por el precio
+Pésimo servicio, nunca más compro aquí
+Muy buena atención, lo recomiendo
+Qué maravilloso esperar una hora por un café
+Cumple con lo prometido
+El producto es caro y además llegó tarde
+No tengo ninguna queja, todo perfecto`;
+$('#s-batch').value=BATCH;
+function sBatch(){
+  const lines=$('#s-batch').value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,60);
+  const rs=lines.map(t=>({t,r:sentiment(t)}));
+  const c={positivo:0,neutral:0,negativo:0};rs.forEach(x=>{c[x.r.label]++});
+  $('#s-table').innerHTML=`<table class="tbl"><tr><th>Reseña</th><th>Puntaje</th><th>Etiqueta</th></tr>${rs.map(x=>`<tr><td style="white-space:normal;min-width:180px">${esc(x.t)}</td><td class="n">${fmt(x.r.comp,2)}</td><td>${lblPill(x.r.label)}</td></tr>`).join('')}</table>`;
+  const n=rs.length||1;const seg=(k,col)=>c[k]?`<b style="width:${c[k]/n*100}%;background:${col}">${c[k]}</b>`:'';
+  $('#s-sum').innerHTML=`<p class="sub">${rs.length} reseñas analizadas</p><div class="dist">${seg('positivo','var(--c1)')}${seg('neutral','var(--muted)')}${seg('negativo','var(--bad)')}</div><div class="legend"><span><i class="sw" style="background:var(--c1)"></i>Positivas ${c.positivo}</span><span><i class="sw" style="background:var(--muted)"></i>Neutrales ${c.neutral}</span><span><i class="sw" style="background:var(--bad)"></i>Negativas ${c.negativo}</span></div>`;
+  const freq={},disp={};lines.forEach(t=>{(t.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g)||[]).forEach(wd=>{const k=norm(wd);if(STOP.has(k)||k.length<3)return;freq[k]=(freq[k]||0)+1;if(!disp[k])disp[k]=wd.toLowerCase()})});
+  const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]||(a[0]<b[0]?-1:1)).slice(0,8);const mx=top.length?top[0][1]:1;
+  $('#s-words').innerHTML=top.map(([k,v])=>`<div class="wbar"><span>${esc(disp[k])}</span><div style="width:${v/mx*100}%"></div><span>${v}</span></div>`).join('')||'<p class="note">Sin palabras para contar.</p>';
+}
+$('#s-batch').addEventListener('input',sBatch);
+codePanel('code-nlp',()=>[
+{label:'Python · léxico casero',code:`import re
+
+POSITIVAS = {"excelente", "bueno", "rápido", "recomiendo"}
+NEGATIVAS = {"malo", "lento", "terrible", "roto"}
+NEGADORES = {"no", "nunca", "jamás"}
+
+def puntaje(texto):
+    tokens = re.findall(r"\\w+", texto.lower())         # tokenización
+    total = 0
+    for i, t in enumerate(tokens):
+        valor = 1 if t in POSITIVAS else -1 if t in NEGATIVAS else 0
+        if valor and any(p in NEGADORES for p in tokens[max(0, i - 3):i]):
+            valor = -valor * 0.7                       # negación
+        total += valor
+    return total
+
+print(puntaje("El producto no es malo, pero el envío fue lento"))`},
+{label:'Python · modelo preentrenado',code:`from pysentimiento import create_analyzer
+
+# modelo de lenguaje entrenado con tweets en español
+analizador = create_analyzer(task="sentiment", lang="es")
+
+resenas = [
+    "La entrega fue muy lenta, pero el producto es excelente",
+    "Qué maravilloso esperar una hora por un café",
+]
+for r in resenas:
+    print(r, "->", analizador.predict(r).output)`},
+{label:'R · syuzhet',code:`library(syuzhet)
+
+resenas <- c("Excelente producto, llegó rápido",
+             "El envío fue muy lento y la caja llegó rota")
+
+get_sentiment(resenas, method = "nrc", language = "spanish")   # puntaje por texto
+get_nrc_sentiment(resenas, language = "spanish")                # emociones: alegría, ira, tristeza...`}]);
+renderers.sentimientos=()=>{sOne();sBatch()};
+
+/* ================= VISUALIZACIÓN ================= */
+function genSales(){
+  const r=mulberry32(33);const regs={Norte:1,Sur:.8,Oeste:1.25,Centro:.95};
+  const cats={'Bebidas calientes':{p:6500,u:2600,pub:1.6,s:[.9,.9,.95,1,1,1.05,1,1,1.05,1.1,1.4,1.6]},'Bebidas frías':{p:8500,u:1500,pub:1.2,s:[.8,.85,.95,1.05,1.2,1.4,1.5,1.3,1.1,1,.85,.8]},'Panadería':{p:4200,u:2200,pub:.9,s:[.9,.85,.9,.95,1,1.05,1,.95,.95,1,1.15,1.3]},'Café en grano':{p:32000,u:380,pub:.7,s:[.8,.9,1,1,1.1,1.3,1,.9,.95,1,1.2,1.5]}};
+  const rows=[];
+  for(let m=1;m<=12;m++)for(const rg in regs)for(const ct in cats){
+    const c=cats[ct];const pub=+(c.pub*(0.6+2.4*r())).toFixed(2);
+    const u=Math.round(c.u*regs[rg]*c.s[m-1]*(0.78+0.14*pub/c.pub)*(0.9+0.2*r()));
+    const pr=Math.round(c.p*(0.95+0.1*r())/100)*100;
+    rows.push({mes:m,sede:rg,producto:ct,publicidad:pub,unidades:u,precio:pr,ventas:+(u*pr/1e6).toFixed(2)});
+  }
+  return rows;
+}
+const SALES={name:'cafe_altiplano.csv (ejemplo)',measure:'ventas',rows:genSales(),cols:[{name:'mes',kind:'time'},{name:'sede',kind:'cat'},{name:'producto',kind:'cat'},{name:'publicidad',kind:'num'},{name:'unidades',kind:'num'},{name:'precio',kind:'num'},{name:'ventas',kind:'num'}]};
+const V={ds:SALES,x:'sede',y:'ventas',c:null,agg:'sum',sort:false,sel:null,isExample:true};
+const KIND={cat:'categoría',num:'número',time:'tiempo'};
+function vKind(n){const c=V.ds.cols.find(c=>c.name===n);return c?c.kind:null}
+function vPlan(){
+  let x=V.x,y=V.y;if(!x&&!y)return {kind:'empty'};
+  if(!x){x=y;y=null}
+  let kx=vKind(x),ky=y?vKind(y):null;
+  if(!y)return kx==='num'?{kind:'hist',x}:{kind:'count',x};
+  if(kx==='num'&&ky!=='num'){[x,y]=[y,x];[kx,ky]=[ky,kx]}
+  if(ky==='num'){if(kx==='num')return {kind:'scatter',x,y};if(kx==='time')return {kind:'line',x,y};return {kind:'bar',x,y}}
+  return {kind:'heat',x,y,m:V.ds.measure};
+}
+function vAgg(rows,xn,yn,cn,agg){
+  const xs=[],ss=[],m=new Map();
+  rows.forEach(r=>{
+    if(yn&&isNaN(+r[yn]))return;
+    const x=r[xn],s=cn?r[cn]:'_';
+    if(!m.has(x)){m.set(x,new Map());xs.push(x)}
+    const mm=m.get(x);const a=mm.get(s)||{sum:0,n:0};a.sum+=yn?+r[yn]:1;a.n++;mm.set(s,a);if(!ss.includes(s))ss.push(s);
+  });
+  const val=(x,s)=>{const a=m.get(x).get(s);return a?(agg==='mean'&&yn?a.sum/a.n:a.sum):0};
+  return {xs,ss,val};
+}
+const cmpAuto=(a,b)=>typeof a==='number'&&typeof b==='number'?a-b:String(a).localeCompare(String(b),'es',{numeric:true});
+function vTruncate(s,n){s=String(s);return s.length>n?s.slice(0,n-1)+'…':s}
+function vBars(w,h,ag,o){
+  let xs=ag.xs.slice();
+  if(o.sort&&ag.ss.length===1)xs.sort((a,b)=>ag.val(b,ag.ss[0])-ag.val(a,ag.ss[0]));
+  else if(o.time)xs.sort(cmpAuto);
+  if(xs.length>30)return {html:'<p class="note">Hay demasiadas categorías para dibujar barras legibles (más de 30). Elige otra columna.</p>',legend:''};
+  const ymax=Math.max(1e-9,...xs.flatMap(x=>ag.ss.map(s=>ag.val(x,s))));
+  const slant=(w-70)/xs.length<66;
+  const f=frame({w,h,xd:[0,xs.length],yd:[0,ymax*1.1],xt:null,yl:o.yl,xl:o.xl,m:{b:(slant?66:28)+(o.xl?14:0)}});
+  let g='';const gw=f.pw/xs.length;const bw=gw*0.74/ag.ss.length;
+  xs.forEach((x,i)=>{
+    const gx=f.m.l+i*gw+gw*0.13;
+    ag.ss.forEach((s,k)=>{const v=ag.val(x,s);const y=f.sy(v);g+=`<rect x="${(gx+k*bw).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1,bw-1).toFixed(1)}" height="${(f.sy(0)-y).toFixed(1)}" style="fill:${ag.ss.length===1?'var(--c1)':CC[k%6]}"/>`});
+    const cx=f.m.l+(i+.5)*gw;const ty=f.m.t+f.ph+15;
+    if(slant)g+=`<text class="tick" transform="translate(${cx.toFixed(1)} ${ty}) rotate(-35)" text-anchor="end">${esc(vTruncate(x,16))}</text>`;
+    else g+=`<text class="tick" x="${cx.toFixed(1)}" y="${ty}" text-anchor="middle">${esc(vTruncate(x,12))}</text>`;
+    if(ag.ss.length===1&&gw>40)g+=`<text class="tick" x="${cx.toFixed(1)}" y="${(f.sy(ag.val(x,ag.ss[0]))-4).toFixed(1)}" text-anchor="middle" style="fill:var(--ink)">${fnum(+ag.val(x,ag.ss[0]).toFixed(1))}</text>`;
+  });
+  return {html:svg(w,h,f.axes+g,'Gráfico de barras'),legend:ag.ss.length>1?ag.ss.map((s,k)=>`<span><i class="sw" style="background:${CC[k%6]}"></i>${esc(s)}</span>`).join(''):''};
+}
+function vLine(w,h,ag,o){
+  const xs=ag.xs.slice().sort(cmpAuto);const n=xs.length;
+  const ymax=Math.max(1e-9,...xs.flatMap(x=>ag.ss.map(s=>ag.val(x,s))));
+  const f=frame({w,h,xd:[0,Math.max(1,n-1)],yd:[0,ymax*1.1],xt:null,yl:o.yl,xl:o.xl});
+  const every=Math.max(1,Math.ceil(n/Math.max(2,Math.floor(f.pw/48))));
+  let g='';
+  xs.forEach((x,i)=>{if(i%every===0)g+=`<text class="tick" x="${f.sx(i).toFixed(1)}" y="${f.m.t+f.ph+15}" text-anchor="middle">${esc(vTruncate(x,10))}</text>`});
+  if(ag.ss.length>6)return {html:'<p class="note">Hay demasiados grupos para dibujar líneas legibles (más de 6). Elige otra columna de color.</p>',legend:''};
+  ag.ss.forEach((s,k)=>{
+    const d=xs.map((x,i)=>(i?'L':'M')+f.sx(i).toFixed(1)+' '+f.sy(ag.val(x,s)).toFixed(1)).join('');
+    const col=ag.ss.length===1?'var(--c1)':CC[k];
+    g+=`<path d="${d}" style="fill:none;stroke:${col};stroke-width:2.5"/>`;
+    xs.forEach((x,i)=>{g+=`<circle cx="${f.sx(i).toFixed(1)}" cy="${f.sy(ag.val(x,s)).toFixed(1)}" r="3" style="fill:${col}"/>`});
+  });
+  return {html:svg(w,h,f.axes+g,'Gráfico de líneas'),legend:ag.ss.length>1?ag.ss.map((s,k)=>`<span><i class="sw" style="background:${CC[k]}"></i>${esc(s)}</span>`).join(''):''};
+}
+function vScatter(w,h,pl,o){
+  const rows=V.ds.rows.filter(r=>!isNaN(+r[pl.x])&&!isNaN(+r[pl.y])).slice(0,1500);
+  if(!rows.length)return {html:'<p class="note">No hay valores numéricos para dibujar.</p>',legend:'',r:null};
+  const xv=rows.map(r=>+r[pl.x]),yv=rows.map(r=>+r[pl.y]);
+  const x0=Math.min(...xv),x1=Math.max(...xv),y0=Math.min(...yv),y1=Math.max(...yv);
+  const px=(x1-x0)*.05||1,py=(y1-y0)*.05||1;
+  const f=frame({w,h,xd:[x0-px,x1+px],yd:[y0-py,y1+py],xl:o.xl,yl:o.yl});
+  const ss=[];if(V.c)rows.forEach(r=>{if(!ss.includes(r[V.c]))ss.push(r[V.c])});
+  let g='';
+  if(!(V.c&&ss.length>6)){rows.forEach(r=>{const col=V.c?CC[ss.indexOf(r[V.c])%6]:'var(--c2)';g+=`<circle cx="${f.sx(+r[pl.x]).toFixed(1)}" cy="${f.sy(+r[pl.y]).toFixed(1)}" r="4" style="fill:${col};fill-opacity:.65"/>`})}
+  else rows.forEach(r=>{g+=`<circle cx="${f.sx(+r[pl.x]).toFixed(1)}" cy="${f.sy(+r[pl.y]).toFixed(1)}" r="4" style="fill:var(--c2);fill-opacity:.65"/>`});
+  const n=rows.length,mx=xv.reduce((a,b)=>a+b,0)/n,my=yv.reduce((a,b)=>a+b,0)/n;
+  let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(xv[i]-mx)*(yv[i]-my);sxx+=(xv[i]-mx)**2;syy+=(yv[i]-my)**2}
+  const r=sxx>0&&syy>0?sxy/Math.sqrt(sxx*syy):null;
+  if(r!==null){const b=sxy/sxx,a=my-b*mx;g+=`<line x1="${f.sx(x0).toFixed(1)}" y1="${f.sy(a+b*x0).toFixed(1)}" x2="${f.sx(x1).toFixed(1)}" y2="${f.sy(a+b*x1).toFixed(1)}" style="stroke:var(--ink);stroke-width:1.5;stroke-dasharray:6 4"/>`}
+  return {html:svg(w,h,f.axes+g,'Diagrama de dispersión'),legend:(V.c&&ss.length<=6)?ss.map((s,k)=>`<span><i class="sw" style="background:${CC[k]}"></i>${esc(s)}</span>`).join(''):'',r};
+}
+function vHeat(w,h,pl){
+  const ag=vAgg(V.ds.rows,pl.x,pl.m,pl.y,V.agg);
+  const xs=ag.xs.slice().sort(cmpAuto),ys=ag.ss.slice().sort(cmpAuto);
+  if(xs.length>14||ys.length>12)return {html:'<p class="note">Hay demasiadas categorías para un mapa de calor legible. Elige columnas con menos valores distintos.</p>',legend:''};
+  const slant=(w-110)/xs.length<60;
+  const m={l:96,r:10,t:8,b:slant?64:30};const pw=w-m.l-m.r,ph=h-m.t-m.b;const cwid=pw/xs.length,chei=ph/ys.length;
+  let mx=1e-9;xs.forEach(x=>ys.forEach(y=>{mx=Math.max(mx,ag.val(x,y))}));
+  let g='';
+  xs.forEach((x,i)=>{
+    ys.forEach((y,j)=>{const v=ag.val(x,y);const t=.1+.9*v/mx;
+      g+=`<rect x="${(m.l+i*cwid+1).toFixed(1)}" y="${(m.t+j*chei+1).toFixed(1)}" width="${(cwid-2).toFixed(1)}" height="${(chei-2).toFixed(1)}" rx="3" style="fill:var(--c1);fill-opacity:${t.toFixed(2)}"/>`;
+      if(cwid>36&&chei>20)g+=`<text class="tick" x="${(m.l+(i+.5)*cwid).toFixed(1)}" y="${(m.t+(j+.5)*chei+4).toFixed(1)}" text-anchor="middle" style="fill:${t>.55?'var(--on-accent)':'var(--ink)'}">${fnum(+v.toFixed(0))}</text>`});
+    const cx=m.l+(i+.5)*cwid,ty=m.t+ph+15;
+    g+=slant?`<text class="tick" transform="translate(${cx.toFixed(1)} ${ty}) rotate(-35)" text-anchor="end">${esc(vTruncate(x,14))}</text>`:`<text class="tick" x="${cx.toFixed(1)}" y="${ty}" text-anchor="middle">${esc(vTruncate(x,12))}</text>`;
+  });
+  ys.forEach((y,j)=>{g+=`<text class="tick" x="${m.l-6}" y="${(m.t+(j+.5)*chei+4).toFixed(1)}" text-anchor="end">${esc(vTruncate(y,13))}</text>`});
+  return {html:svg(w,h,g,'Mapa de calor'),legend:`<span>Color más intenso = valor más alto. Cada celda: ${V.agg==='mean'?'promedio':'suma'} de ${pl.m?esc(pl.m):'filas (conteo)'}.</span>`};
+}
+function vHist(w,h,pl){
+  const v=V.ds.rows.map(r=>+r[pl.x]).filter(x=>!isNaN(x));
+  if(!v.length)return {html:'<p class="note">No hay valores numéricos.</p>',legend:''};
+  const lo=Math.min(...v),hi=Math.max(...v),nb=Math.max(5,Math.min(20,Math.round(Math.sqrt(v.length))));const bwd=(hi-lo)/nb||1;
+  const cnt=new Array(nb).fill(0);v.forEach(x=>{cnt[Math.min(nb-1,Math.floor((x-lo)/bwd))]++});
+  const ymax=Math.max(...cnt);
+  const f=frame({w,h,xd:[lo,lo+bwd*nb],yd:[0,ymax*1.1],xl:esc(pl.x),yl:'Frecuencia'});
+  let g='';cnt.forEach((c,i)=>{const x0=f.sx(lo+i*bwd)+1,x1=f.sx(lo+(i+1)*bwd)-1;g+=`<rect x="${x0.toFixed(1)}" y="${f.sy(c).toFixed(1)}" width="${Math.max(1,x1-x0).toFixed(1)}" height="${(f.sy(0)-f.sy(c)).toFixed(1)}" style="fill:var(--c1);fill-opacity:.8"/>`});
+  return {html:svg(w,h,f.axes+g,'Histograma'),legend:''};
+}
+const VWHY={
+  empty:['Arma tu primer gráfico','Arrastra una columna al eje X o toca una columna y luego un espacio. También puedes probar uno de los ejemplos.',''],
+  bar:['Barras','Compara el valor de cada categoría. Ordenarlas de mayor a menor facilita ver quién lidera.','¿Qué categoría vende más?'],
+  line:['Líneas','Muestra cómo cambia una medida a lo largo del tiempo y permite ver tendencias y temporadas.','¿Cómo evolucionó la medida en el tiempo?'],
+  scatter:['Dispersión','Cada punto es una fila. Sirve para ver si dos medidas se mueven juntas.','¿Hay relación entre las dos variables?'],
+  heat:['Mapa de calor','Cruza dos categorías y pinta la intensidad de una medida en cada celda.','¿En qué combinaciones se concentra el valor?'],
+  hist:['Histograma','Cuenta cuántos datos caen en cada intervalo para mostrar la forma de la distribución.','¿Cómo se distribuyen los valores?'],
+  count:['Barras de conteo','Cuenta cuántas filas hay en cada categoría.','¿Cuántos registros hay por categoría?']
+};
+function vRender(){
+  const ds=V.ds,pl=vPlan();
+  $('#v-info').textContent=`${ds.name} · ${ds.rows.length.toLocaleString('es-CO')} filas · ${ds.cols.filter(c=>c.kind!=='texto').length} columnas utilizables`;
+  $('#v-chips').innerHTML=ds.cols.filter(c=>c.kind!=='texto').map(c=>`<span class="chip${V.sel===c.name?' on':''}" draggable="true" data-col="${esc(c.name)}" tabindex="0" role="button" aria-pressed="${V.sel===c.name}">${esc(c.name)} <small>${KIND[c.kind]}</small></span>`).join('');
+  const slot=(key,label)=>{const v=V[key];return `<div class="slot${V.sel?' target':''}" data-slot="${key}" tabindex="0" role="button" aria-label="${label}"><b>${label}</b>${v?`<span class="chip on" data-clear="${key}" title="Quitar">${esc(v)} ✕</span>`:`<span class="em">${V.sel?'Toca para soltar aquí':'Arrastra una columna'}</span>`}</div>`};
+  $('#v-slots').innerHTML=slot('x','Eje X')+slot('y','Eje Y')+slot('c','Color / grupo');
+  $('#v-agg').value=V.agg;$('#v-sort').checked=V.sort;
+  $('#v-presets').innerHTML=(V.isExample?[['Ventas por sede',{x:'sede',y:'ventas',c:null}],['Tendencia por producto',{x:'mes',y:'ventas',c:'producto'}],['¿Más publicidad, más ventas?',{x:'publicidad',y:'ventas',c:'producto'}],['Sede × producto',{x:'sede',y:'producto',c:null}],['Distribución de ventas',{x:'ventas',y:null,c:null}]]:[]).map((p,i)=>`<button class="chip" data-preset="${i}">${p[0]}</button>`).join('');
+  const w=cw('#v-chart');const h=Math.round(Math.max(260,Math.min(340,w*0.62)));
+  const lbl=n=>n?esc(n):'';
+  let res={html:'',legend:''};let extra='';
+  if(pl.kind==='empty')res={html:'<div class="drop" style="padding:40px 12px">Tu gráfico aparecerá aquí</div>',legend:''};
+  else if(pl.kind==='bar'||pl.kind==='line'){
+    const ag=vAgg(ds.rows,pl.x,pl.y,V.c,V.agg);
+    const o={xl:lbl(pl.x),yl:(V.agg==='mean'?'Promedio de ':'Suma de ')+lbl(pl.y),sort:V.sort,time:pl.kind==='line'};
+    res=pl.kind==='bar'?vBars(w,h,ag,o):vLine(w,h,ag,o);
+  }else if(pl.kind==='count'){
+    const ag=vAgg(ds.rows,pl.x,null,null,'sum');
+    res=vBars(w,h,ag,{xl:lbl(pl.x),yl:'Conteo de filas',sort:V.sort,time:vKind(pl.x)==='time'});
+  }else if(pl.kind==='scatter'){
+    res=vScatter(w,h,pl,{xl:lbl(pl.x),yl:lbl(pl.y)});
+    if(res.r!==null&&res.r!==undefined){const a=Math.abs(res.r);extra=`<p class="note"><b>Correlación r = ${fmt(res.r,2)}</b>: relación ${a>=.7?'fuerte':a>=.4?'moderada':'débil'} ${res.r>=0?'positiva':'negativa'}. Una correlación no prueba que una variable cause la otra.</p>`}
+  }else if(pl.kind==='heat')res=vHeat(w,h,pl);
+  else if(pl.kind==='hist')res=vHist(w,h,pl);
+  $('#v-chart').innerHTML=res.html;$('#v-legend').innerHTML=res.legend||'';
+  const why=VWHY[pl.kind];
+  $('#v-why').innerHTML=`<h3>${why[0]}</h3><p class="sub" style="margin-bottom:6px">${why[1]}</p>${why[2]?`<p class="note" style="margin:0"><b>Pregunta que responde:</b> ${why[2]}</p>`:''}${extra}<p class="note" style="margin-bottom:0;color:var(--muted)">El color se aplica a barras, líneas y puntos. El mapa de calor y el histograma lo ignoran.</p>`;
+  V.plan=pl;vCode();
+}
+function vAssign(slot,name){V[slot]=name;V.sel=null;vRender()}
+const vc=$('#v-chips');
+vc.addEventListener('dragstart',e=>{const c=e.target.closest('[data-col]');if(!c)return;try{e.dataTransfer.setData('text/plain',c.dataset.col);e.dataTransfer.effectAllowed='copy'}catch(_){}});
+vc.addEventListener('click',e=>{const c=e.target.closest('[data-col]');if(!c)return;V.sel=V.sel===c.dataset.col?null:c.dataset.col;vRender()});
+vc.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const c=e.target.closest('[data-col]');if(c){e.preventDefault();V.sel=V.sel===c.dataset.col?null:c.dataset.col;vRender()}}});
+const vs=$('#v-slots');
+vs.addEventListener('dragover',e=>{const s=e.target.closest('[data-slot]');if(s){e.preventDefault();s.classList.add('over')}});
+vs.addEventListener('dragleave',e=>{const s=e.target.closest('[data-slot]');if(s)s.classList.remove('over')});
+vs.addEventListener('drop',e=>{const s=e.target.closest('[data-slot]');if(!s)return;e.preventDefault();const n=e.dataTransfer.getData('text/plain');if(n&&vKind(n))vAssign(s.dataset.slot,n)});
+vs.addEventListener('click',e=>{const cl=e.target.closest('[data-clear]');if(cl){V[cl.dataset.clear]=null;vRender();return}const s=e.target.closest('[data-slot]');if(s&&V.sel)vAssign(s.dataset.slot,V.sel)});
+vs.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&V.sel){const s=e.target.closest('[data-slot]');if(s){e.preventDefault();vAssign(s.dataset.slot,V.sel)}}});
+$('#v-presets').addEventListener('click',e=>{const b=e.target.closest('[data-preset]');if(!b)return;const P0=[{x:'sede',y:'ventas',c:null},{x:'mes',y:'ventas',c:'producto'},{x:'publicidad',y:'ventas',c:'producto'},{x:'sede',y:'producto',c:null},{x:'ventas',y:null,c:null}][+b.dataset.preset];Object.assign(V,P0,{sel:null});vRender()});
+$('#v-agg').addEventListener('change',e=>{V.agg=e.target.value;vRender()});
+$('#v-sort').addEventListener('change',e=>{V.sort=e.target.checked;vRender()});
+// carga de CSV
+function parseCSV(text){
+  text=text.replace(/^﻿/,'');const first=text.split(/\r?\n/)[0]||'';
+  const delim=[',',';','\t'].map(d=>[d,first.split(d).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}
+    else if(ch==='"')q=true;
+    else if(ch===delim){row.push(cur);cur=''}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cur);cur='';if(row.length>1||row[0]!=='')rows.push(row);row=[]}
+    else cur+=ch}
+  if(cur!==''||row.length){row.push(cur);rows.push(row)}
+  return rows;
+}
+function buildDS(name,table){
+  if(table.length<2)throw new Error('El archivo necesita un encabezado y al menos una fila de datos.');
+  let head=table[0].map(h=>h.trim()||'columna');head=head.map((h,i)=>head.indexOf(h)===i?h:h+'_'+i);
+  const body=table.slice(1,5001);
+  const toNum=s=>{s=String(s).trim();return /^-?\d+([.,]\d+)?$/.test(s)?Number(s.replace(',','.')):NaN};
+  const cols=head.map((h,j)=>{
+    const vals=body.map(r=>(r[j]===undefined?'':String(r[j])).trim());const filled=vals.filter(v=>v!=='');
+    const isNum=filled.length>0&&filled.filter(v=>!isNaN(toNum(v))).length/filled.length>=0.9;
+    const timeName=/^(mes|month|a[nñ]o|year|fecha|date|per[ií]odo|periodo|semana|week|d[ií]a|day)/i.test(h);
+    const uniq=new Set(filled).size;let kind;
+    if(timeName&&(isNum||uniq<=400))kind='time';else if(isNum)kind='num';else if(uniq<=40)kind='cat';else kind='texto';
+    return {name:h,kind,isNum};
+  });
+  const rows=body.map(r=>{const o={};cols.forEach((c,j)=>{const v=(r[j]===undefined?'':String(r[j])).trim();o[c.name]=(c.isNum&&c.kind!=='texto')?(v===''?NaN:toNum(v)):v});return o});
+  const nums=cols.filter(c=>c.kind==='num');
+  const measure=(nums.find(c=>/venta|ingreso|total|valor|monto/i.test(c.name))||nums[0]||{}).name||null;
+  return {name,measure,rows,cols:cols.map(c=>({name:c.name,kind:c.kind}))};
+}
+function vLoad(file){
+  const msg=$('#v-msg');msg.className='msg';msg.textContent='Leyendo archivo…';
+  const rd=new FileReader();
+  rd.onload=()=>{try{
+    const ds=buildDS(file.name,parseCSV(String(rd.result)));
+    const use=ds.cols.filter(c=>c.kind!=='texto');if(use.length<1)throw new Error('No encontré columnas numéricas ni de categorías.');
+    V.ds=ds;V.isExample=false;V.sel=null;V.agg='sum';
+    const cat=use.find(c=>c.kind==='cat'||c.kind==='time'),num=use.find(c=>c.kind==='num');
+    V.x=cat?cat.name:(num?num.name:null);V.y=(cat&&num)?num.name:null;V.c=null;
+    msg.textContent=`Listo: ${ds.rows.length} filas. Arrastra tus columnas a los ejes.`;vRender();
+  }catch(err){msg.className='msg err';msg.textContent=err.message}};
+  rd.onerror=()=>{msg.className='msg err';msg.textContent='No pude leer el archivo.'};
+  rd.readAsText(file);
+}
+$('#v-file').addEventListener('change',e=>{if(e.target.files[0])vLoad(e.target.files[0]);e.target.value=''});
+const vd=$('#v-drop');
+vd.addEventListener('dragover',e=>{e.preventDefault();vd.classList.add('over')});
+vd.addEventListener('dragleave',()=>vd.classList.remove('over'));
+vd.addEventListener('drop',e=>{e.preventDefault();vd.classList.remove('over');const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)vLoad(f)});
+$('#v-back').addEventListener('click',()=>{Object.assign(V,{ds:SALES,isExample:true,x:'sede',y:'ventas',c:null,sel:null,agg:'sum'});$('#v-msg').textContent='';vRender()});
+$('#v-copy').addEventListener('click',e=>{const cols=SALES.cols.map(c=>c.name);const csv=cols.join(',')+'\n'+SALES.rows.map(r=>cols.map(c=>r[c]).join(',')).join('\n');copyText(csv,e.target)});
+const vCode=codePanel('code-vis',()=>{
+  const pl=V.plan||{kind:'empty'};const a=V.agg==='mean'?'mean':'sum';
+  const pyHead=`import pandas as pd\nimport matplotlib.pyplot as plt\nimport seaborn as sns\n\ndf = pd.read_csv("datos.csv")\n\n`;
+  const rHead=`library(ggplot2)\n\ndf <- read.csv("datos.csv")\n\n`;
+  const q=s=>String(s).replace(/"/g,'');
+  let py='',r='';
+  switch(pl.kind){
+    case 'bar':{const x=q(pl.x),y=q(pl.y);
+      if(V.c){const c=q(V.c);py=`df.pivot_table(index="${x}", columns="${c}", values="${y}", aggfunc="${a}").plot.bar()`;r=`ggplot(df, aes(x = ${x}, y = ${y}, fill = ${c})) +\n  stat_summary(fun = ${a}, geom = "col", position = "dodge")`}
+      else{py=`df.groupby("${x}")["${y}"].${a}()${V.sort?'.sort_values(ascending=False)':''}.plot.bar()`;r=`ggplot(df, aes(x = ${V.sort?`reorder(${x}, -${y}, FUN = ${a})`:x}, y = ${y})) +\n  stat_summary(fun = ${a}, geom = "col")`}
+      py+=`\nplt.show()`;break}
+    case 'line':{const x=q(pl.x),y=q(pl.y);
+      if(V.c){const c=q(V.c);py=`df.pivot_table(index="${x}", columns="${c}", values="${y}", aggfunc="${a}").plot(marker="o")`;r=`ggplot(df, aes(x = ${x}, y = ${y}, color = ${c})) +\n  stat_summary(fun = ${a}, geom = "line")`}
+      else{py=`df.groupby("${x}")["${y}"].${a}().plot(marker="o")`;r=`ggplot(df, aes(x = ${x}, y = ${y}, group = 1)) +\n  stat_summary(fun = ${a}, geom = "line")`}
+      py+=`\nplt.show()`;break}
+    case 'scatter':{const x=q(pl.x),y=q(pl.y);const c=V.c?q(V.c):null;
+      py=`sns.scatterplot(data=df, x="${x}", y="${y}"${c?`, hue="${c}"`:''})\nplt.show()\nprint(df["${x}"].corr(df["${y}"]))      # correlación de Pearson`;
+      r=`ggplot(df, aes(x = ${x}, y = ${y}${c?`, color = ${c}`:''})) +\n  geom_point() +\n  geom_smooth(method = "lm", se = FALSE)\ncor(df$${x}, df$${y})                   # correlación de Pearson`;break}
+    case 'heat':{const x=q(pl.x),y=q(pl.y),m=pl.m?q(pl.m):null;
+      if(m){py=`tabla = df.pivot_table(index="${y}", columns="${x}", values="${m}", aggfunc="${a}")\nsns.heatmap(tabla, annot=True, fmt=".0f", cmap="Greens")\nplt.show()`;r=`agg <- aggregate(${m} ~ ${x} + ${y}, data = df, FUN = ${a})\nggplot(agg, aes(x = ${x}, y = ${y}, fill = ${m})) +\n  geom_tile()`}
+      else{py=`tabla = pd.crosstab(df["${y}"], df["${x}"])\nsns.heatmap(tabla, annot=True, fmt="d", cmap="Greens")\nplt.show()`;r=`ggplot(as.data.frame(table(df$${x}, df$${y})), aes(Var1, Var2, fill = Freq)) +\n  geom_tile()`}
+      break}
+    case 'hist':{const x=q(pl.x);py=`df["${x}"].plot.hist(bins=12)\nplt.show()`;r=`ggplot(df, aes(x = ${x})) +\n  geom_histogram(bins = 12)`;break}
+    case 'count':{const x=q(pl.x);py=`df["${x}"].value_counts().plot.bar()\nplt.show()`;r=`ggplot(df, aes(x = ${x})) +\n  geom_bar()`;break}
+    default:py='# Arrastra columnas a los ejes para generar el código.';r='# Arrastra columnas a los ejes para generar el código.';
+  }
+  return [{label:'Python (pandas + seaborn)',code:pl.kind==='empty'?py:pyHead+py},{label:'R (ggplot2)',code:pl.kind==='empty'?r:rHead+r}];
+});
+renderers.visualizacion=vRender;
+
+/* ================= HERRAMIENTAS ================= */
+const TASKS=[['todo','Todo'],['limpiar','Limpiar y preparar'],['visualizar','Visualizar'],['predecir','Predecir (aprendizaje automático)'],['texto','Texto (NLP)'],['tableros','Tableros'],['bd','Bases de datos']];
+const TOOLS=[
+ {n:'Python',k:'Código',lv:'Intermedio',t:['limpiar','visualizar','predecir','texto'],d:'Lenguaje general. pandas para los datos, matplotlib y seaborn para gráficos, scikit-learn para modelos.'},
+ {n:'R',k:'Código',lv:'Intermedio',t:['limpiar','visualizar','predecir','texto'],d:'Pensado para la estadística. tidyverse y ggplot2 para datos y gráficos, tidymodels para modelos.'},
+ {n:'SQL',k:'Código',lv:'Inicial',t:['limpiar','bd'],d:'Lenguaje para consultar bases de datos: filtrar, unir y agregar millones de filas.'},
+ {n:'Excel y hojas de cálculo',k:'Sin código',lv:'Inicial',t:['limpiar','visualizar'],d:'Fórmulas, tablas dinámicas y gráficos. El punto de partida de casi cualquier análisis.'},
+ {n:'Power BI',k:'Sin código',lv:'Inicial',t:['visualizar','tableros','limpiar'],d:'Tableros interactivos y modelo de datos de Microsoft. Power Query limpia y transforma sin escribir código.'},
+ {n:'Tableau',k:'Sin código',lv:'Inicial',t:['visualizar','tableros'],d:'Exploración visual: arrastras campos a filas y columnas y el gráfico aparece.'},
+ {n:'Looker Studio',k:'Sin código',lv:'Inicial',t:['visualizar','tableros'],d:'Antes llamado Google Data Studio. Informes en la nube conectados a hojas de Google y bases de datos.'},
+ {n:'Orange Data Mining',k:'Sin código',lv:'Inicial',t:['limpiar','visualizar','predecir'],d:'Flujos visuales: conectas widgets para cargar datos, agrupar, clasificar y evaluar modelos.'},
+ {n:'KNIME',k:'Mixto',lv:'Intermedio',t:['limpiar','visualizar','predecir'],d:'Flujos de nodos para preparar datos y entrenar modelos, con opción de insertar código.'},
+ {n:'Jupyter y Google Colab',k:'Mixto',lv:'Inicial',t:['limpiar','visualizar','predecir','texto'],d:'Cuadernos donde alternas texto, código y resultados. Colab corre en el navegador sin instalar nada.'},
+ {n:'Hugging Face',k:'Código',lv:'Avanzado',t:['texto','predecir'],d:'Biblioteca de modelos de lenguaje ya entrenados para clasificar, resumir o traducir texto.'}
+];
+const T={task:'todo',kind:'todo'};
+function tRender(){
+  $('#t-task').innerHTML='<span class="note" style="margin:0">Quiero:</span>'+TASKS.map(([k,l])=>`<button class="chip${T.task===k?' on':''}" data-task="${k}">${l}</button>`).join('');
+  $('#t-kind').innerHTML='<span class="note" style="margin:0">Trabajar:</span>'+[['todo','Como sea'],['Sin código','Arrastrando, sin código'],['Código','Escribiendo código']].map(([k,l])=>`<button class="chip${T.kind===k?' on':''}" data-kind="${k}">${l}</button>`).join('');
+  const list=TOOLS.filter(t=>(T.task==='todo'||t.t.includes(T.task))&&(T.kind==='todo'||t.k===T.kind||(T.kind==='Sin código'&&t.k==='Mixto')||(T.kind==='Código'&&t.k==='Mixto')));
+  $('#t-grid').innerHTML=list.length?list.map(t=>`<div class="tool"><h3>${t.n}</h3><p>${t.d}</p><div class="meta">${pill(t.k,t.k==='Sin código'?'ok':t.k==='Mixto'?'warn':'')}${pill('Entrada: '+t.lv.toLowerCase())}</div></div>`).join(''):'<p class="note">Ninguna herramienta cumple ambos filtros. Prueba con otra combinación.</p>';
+}
+$('#t-task').addEventListener('click',e=>{const b=e.target.closest('[data-task]');if(b){T.task=b.dataset.task;tRender()}});
+$('#t-kind').addEventListener('click',e=>{const b=e.target.closest('[data-kind]');if(b){T.kind=b.dataset.kind;tRender()}});
+const ROS=[
+ {t:'Promedio por grupo',py:'df.groupby("sede")["ventas"].mean()',r:'aggregate(ventas ~ sede, data = df, FUN = mean)',sql:'SELECT sede, AVG(ventas) FROM df GROUP BY sede;',xl:'Tabla dinámica, o =PROMEDIO.SI(A:A;"Norte";D:D)'},
+ {t:'Filtrar filas',py:'df[df["ventas"] > 100]',r:'subset(df, ventas > 100)',sql:'SELECT * FROM df WHERE ventas > 100;',xl:'=FILTRAR(A2:D100;D2:D100>100)'},
+ {t:'Ordenar',py:'df.sort_values("ventas", ascending=False)',r:'df[order(-df$ventas), ]',sql:'SELECT * FROM df ORDER BY ventas DESC;',xl:'=ORDENAR(A2:D100;4;-1)'},
+ {t:'Desviación estándar',py:'df["ventas"].std()',r:'sd(df$ventas)',sql:'SELECT STDDEV(ventas) FROM df;',xl:'=DESVEST.M(D2:D100)'},
+ {t:'Correlación',py:'df["publicidad"].corr(df["ventas"])',r:'cor(df$publicidad, df$ventas)',sql:'SELECT CORR(publicidad, ventas) FROM df;  -- PostgreSQL',xl:'=COEF.DE.CORREL(B2:B100;D2:D100)'},
+ {t:'Contar valores faltantes',py:'df.isna().sum()',r:'colSums(is.na(df))',sql:'SELECT COUNT(*) - COUNT(ventas) FROM df;',xl:'=CONTAR.BLANCO(D2:D100)'}
+];
+let roSel=0;
+function roRender(){
+  $('#ro-tasks').innerHTML=ROS.map((x,i)=>`<button class="chip${roSel===i?' on':''}" data-ro="${i}">${x.t}</button>`).join('');
+  const x=ROS[roSel];
+  $('#ro-table').innerHTML=`<tr><th>Herramienta</th><th>Cómo se escribe</th></tr>${[['Python (pandas)',x.py],['R',x.r],['SQL',x.sql],['Excel',x.xl]].map(([a,b])=>`<tr><td><b>${a}</b></td><td style="font-family:var(--mono);font-size:13px">${esc(b)}</td></tr>`).join('')}`;
+}
+$('#ro-tasks').addEventListener('click',e=>{const b=e.target.closest('[data-ro]');if(b){roSel=+b.dataset.ro;roRender()}});
+renderers.herramientas=()=>{tRender();roRender()};
+
+/* ================= QUIZ ================= */
+const QS=[
+ {q:'En tus ventas mensuales aparece un mes con una cifra cinco veces mayor que el resto. ¿Qué medida describe mejor un mes típico?',o:['La media','La mediana','El máximo','La desviación estándar'],a:1,e:'La mediana solo depende del orden de los datos, así que un valor extremo casi no la mueve. La media sí se desplaza hacia él.'},
+ {q:'Un modelo tiene error casi nulo con los datos de entrenamiento, pero un error alto con los de prueba. ¿Qué ocurrió?',o:['Los datos son perfectos','Subajuste: el modelo es muy simple','Falta una visualización','Sobreajuste: memorizó el ruido'],a:3,e:'Es el patrón clásico del sobreajuste. Por eso se evalúa con datos que el modelo nunca vio.'},
+ {q:'Camilo quiere decidir cuántas tandas de latte y de cold brew preparar para maximizar el margen con horas de barista y kilos de café limitados. ¿Qué tipo de análisis es?',o:['Descriptivo','Predictivo','Prescriptivo','Análisis de sentimientos'],a:2,e:'Recomienda la mejor acción dentro de unas restricciones: es análisis prescriptivo, y se resuelve con optimización o programación lineal.'},
+ {q:'¿Para qué sirve el método del codo en k-means?',o:['Para elegir cuántos grupos usar, viendo cuándo agregar uno más ya no reduce mucho la inercia','Para calcular la media de cada grupo','Para eliminar los valores atípicos','Para medir la correlación entre dos variables'],a:0,e:'La curva de inercia baja rápido al principio y luego se aplana. El punto donde se dobla, el codo, sugiere un k razonable.'},
+ {q:'La regla Pañales → Cerveza tiene lift = 2,1. ¿Qué significa?',o:['Quien compra pañales siempre compra cerveza','Se compran juntos el 2,1 % de las veces','Aparecen juntos unas 2,1 veces más de lo esperado si fueran independientes','La regla es falsa porque el lift es mayor que 1'],a:2,e:'El lift compara la confianza de la regla con la frecuencia base del segundo producto. Mayor que 1 indica asociación.'},
+ {q:'¿Por qué un léxico simple se equivoca con «Qué maravilloso esperar una hora por un café»?',o:['Porque tiene demasiadas palabras','No entiende la ironía: ve «rápido» y suma puntos positivos','Porque no sabe tokenizar','Porque el texto es muy corto'],a:1,e:'El léxico mira palabras sueltas y reglas simples. Entender sarcasmo requiere contexto, que es donde brillan los modelos de lenguaje.'},
+ {q:'Quieres mostrar cómo evolucionaron las ventas durante doce meses. ¿Qué gráfico eliges?',o:['Líneas','Dispersión','Mapa de calor','Histograma'],a:0,e:'Las líneas son la opción natural para una medida que cambia en el tiempo: se ven tendencias y temporadas.'},
+ {q:'¿Cuál de estas opciones permite armar un flujo de análisis arrastrando bloques, sin escribir código?',o:['Una consulta SQL escrita a mano','Un script de pandas','Orange Data Mining','Un documento de R Markdown'],a:2,e:'Orange y KNIME trabajan con flujos de widgets o nodos conectados visualmente.'},
+ {q:'En un diagrama de dispersión de publicidad contra ventas ves r = 0,8. ¿Qué puedes concluir?',o:['Que la publicidad causa el 80 % de las ventas','Que el modelo está sobreajustado','Que los datos tienen valores atípicos','Hay una asociación fuerte, pero no prueba por sí sola que una cause la otra'],a:3,e:'La correlación mide cuánto se mueven juntas dos variables. Para hablar de causa hace falta más diseño que un coeficiente.'}
+];
+const Q={ans:new Array(QS.length).fill(null)};
+function qRender(){
+  $('#q-list').innerHTML=QS.map((x,i)=>{const a=Q.ans[i];return `<div class="qq"><h3>${i+1}. ${x.q}</h3>${x.o.map((o,j)=>`<button class="opt${a!==null?(j===x.a?' right':(j===a?' wrong':'')):''}" data-q="${i}" data-o="${j}" ${a!==null?'disabled':''}>${o}</button>`).join('')}${a!==null?`<p class="why"><b>${a===x.a?'Correcto.':'No exactamente.'}</b> ${x.e}</p>`:''}</div>`}).join('');
+  const done=Q.ans.filter(v=>v!==null).length,ok=Q.ans.filter((v,i)=>v===QS[i].a).length;
+  $('#q-score').textContent=`${ok} / ${QS.length}`+(done===QS.length?(ok===QS.length?' · ¡Perfecto!':ok>=6?' · Muy bien':' · Repasa los módulos'):'');
+}
+$('#q-list').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;Q.ans[+b.dataset.q]=+b.dataset.o;qRender()});
+$('#q-reset').addEventListener('click',()=>{Q.ans.fill(null);qRender()});
+renderers.quiz=qRender;
+
+
+/* ================= V2 · progreso, misiones, KPIs y hero ================= */
+const LS_KEY='labdatos2';
+const MIS={ruta:{xp:50,t:'Ordena el proceso'},desc:{xp:100,t:'Pedido corporativo'},pred:{xp:100,t:'El pronóstico más barato'},presc:{xp:100,t:'Dinero sobre la mesa'},seg:{xp:100,t:'Campaña de WhatsApp'},nlp:{xp:100,t:'Reseñas en vivo'},viz:{xp:100,t:'Tres gráficos para la junta'},ml:{xp:150,t:'Gana a la línea base'},quiz:{xp:200,t:'Autoevaluación (7 de 9)'}};
+const MOD_OF={ruta:'ruta',desc:'descriptivo',pred:'predictivo',presc:'prescriptivo',seg:'mineria',nlp:'sentimientos',viz:'visualizacion',ml:'taller',quiz:'quiz'};
+let PROG={};try{PROG=JSON.parse(localStorage.getItem(LS_KEY))||{}}catch(_){PROG={}}
+const saveProg=()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(PROG))}catch(_){}};
+const TOTAL_XP=Object.keys(MIS).reduce((s,k)=>s+MIS[k].xp,0);
+const LEVELS=[[0,'Aprendiz'],[200,'Analista junior'],[450,'Analista'],[700,'Analista senior'],[900,'Líder de datos']];
+const xpNow=()=>Object.keys(MIS).reduce((s,k)=>s+(PROG[k]?MIS[k].xp:0),0);
+const levelOf=x=>LEVELS.reduce((l,[t,n])=>x>=t?n:l,LEVELS[0][1]);
+const REDUCED=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MST={};
+const MTXT={
+ desc:['Daniela · finanzas','Entró un pedido corporativo enorme en la sede Norte. Necesito proyectar el año para pedirle café al proveedor, y la proyección es «cifra típica × 12». ¿Cuál cifra uso: la media, la mediana o el máximo? Prueba con el pedido de 380 y decide.'],
+ pred:['Camilo · operaciones','Compro el café según tu pronóstico. Si pronosticas de más, el grano se añeja y se bota; si pronosticas de menos, perdemos ventas. Recorre los grados y quédate con el que cuesta menos plata, no solo con el de menor error.'],
+ presc:['Camilo · operaciones','Cada jornada tenemos horas de barista y kilos de café limitados. ¿Cuántas tandas de latte y de cold brew preparo? Mueve tu plan y llega al menos al 97 % del óptimo sin pasarte de ningún recurso.'],
+ seg:['Marcela · mercadeo','Tengo presupuesto para una campaña por WhatsApp. No puedo escribirle a todos. Segmenta con k-means (mínimo tres grupos, hasta converger) y elige el segmento con mayor ganancia esperada.'],
+ nlp:['Sofía · servicio al cliente','Llegan reseñas todo el día y no alcanzo a leerlas. Inicia el flujo en vivo y, cuando haya al menos 20, dime cuál es la queja número uno para atacarla primero.'],
+ viz:['Don Héctor · junta directiva','No leo tablas. Muéstrame tres gráficos: ventas por sede (barras), la evolución mensual por producto (líneas) y si más publicidad significa más ventas (dispersión).'],
+ ml:['Marcela · mercadeo','Quiero predecir las ventas por sede y producto. Arma un modelo que supere por buen margen a «predecir el promedio». Cuidado con las variables que solo se conocen después de vender.'],
+ quiz:['Laura · gerencia','Cierra la unidad con la autoevaluación. Con 7 de 9 respuestas correctas eres oficialmente parte del equipo de datos.']
+};
+function renderMission(id){
+  const el=$('#ms-'+id);if(!el||!MTXT[id])return;
+  const m=MTXT[id],done=!!PROG[id];
+  el.innerHTML=`<div class="mis${done?' done':''}"><h4><span>Misión · ${esc(MIS[id].t)}</span><span>${done?'✓ completada':'+'+MIS[id].xp+' XP'}</span></h4><p class="who">${esc(m[0])}</p><p>${m[1]}</p>${done?'<p class="st">¡Lograda! Sigue explorando o pasa al siguiente módulo.</p>':MST[id]?`<p class="st">${MST[id]}</p>`:''}</div>`;
+}
+function setMs(id,txt){if(MST[id]===txt)return;MST[id]=txt;if(!PROG[id])renderMission(id)}
+let toastT;
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),2800)}
+function confetti(){
+  if(REDUCED)return;const cv=$('#confetti');if(!cv||!cv.getContext)return;const ctx=cv.getContext('2d');if(!ctx)return;
+  const W=cv.width=innerWidth,H=cv.height=innerHeight;const cols=['#9BE000','#6FA2FF','#F2A33C','#B58CF2','#FF7BA9'];
+  const ps=Array.from({length:80},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.75,vx:(Math.random()-.5)*10,vy:-6-Math.random()*9,r:3+Math.random()*4,c:cols[Math.floor(Math.random()*5)],rot:Math.random()*6}));
+  let f=0;(function step(){ctx.clearRect(0,0,W,H);ps.forEach(p=>{p.vy+=.3;p.x+=p.vx;p.y+=p.vy;p.rot+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);ctx.restore()});if(++f<90)requestAnimationFrame(step);else ctx.clearRect(0,0,W,H)})();
+}
+function uiProg(){
+  const x=xpNow();
+  $('#xp-lv').textContent=levelOf(x);$('#xp-n').textContent=`${x} / ${TOTAL_XP} XP`;$('#xp-bar').style.width=(x/TOTAL_XP*100)+'%';
+  Object.keys(MIS).forEach(k=>{const t=$('#tab-'+MOD_OF[k]);if(t)t.classList.toggle('done',!!PROG[k])});
+  $('#mlist').innerHTML=Object.keys(MIS).map(k=>`<li class="${PROG[k]?'ok':''}"><span aria-hidden="true">${PROG[k]?'✓':'○'}</span><b>${esc(MIS[k].t)}</b><span class="xpv">+${MIS[k].xp} XP</span><a href="#${MOD_OF[k]}">${PROG[k]?'Repetir':'Ir'}</a></li>`).join('');
+}
+function award(id){
+  if(PROG[id]||!MIS[id])return;PROG[id]=1;saveProg();
+  toast(`+${MIS[id].xp} XP · ${MIS[id].t}`);confetti();renderMission(id);uiProg();
+  if(xpNow()===TOTAL_XP)setTimeout(()=>toast('¡Completaste todo! Nivel: Líder de datos'),3000);
+}
+$('#reset-prog').addEventListener('click',e=>{const b=e.currentTarget;if(b.dataset.arm){PROG={};saveProg();Object.keys(MST).forEach(k=>delete MST[k]);Object.keys(MTXT).forEach(renderMission);uiProg();b.textContent='Reiniciar mi progreso';delete b.dataset.arm}else{b.dataset.arm='1';b.textContent='¿Seguro? Pulsa otra vez';setTimeout(()=>{if(b.dataset.arm){delete b.dataset.arm;b.textContent='Reiniciar mi progreso'}},3500)}});
+
+/* misión de ruta: ordenar el proceso */
+$('#g-check').addEventListener('click',()=>{if(G.order.every((s,p)=>s===p))award('ruta')});
+
+/* KPIs vivos */
+function bestTestRmse(){const tr=P.pts.filter(p=>p.train),te=P.pts.filter(p=>!p.train);let b=1e9;for(let d=1;d<=9;d++){const w=polyfit(tr.map(p=>p.x),tr.map(p=>p.y),d);b=Math.min(b,rmse(w,te))}return b}
+function kpiList(){
+  const tot=SALES.rows.reduce((s,r)=>s+r.ventas,0);
+  const o=rGeom().opt;const pos=FEED_POOL.filter(r=>sentiment(r.t).label==='positivo').length/FEED_POOL.length*100;
+  return [
+   {l:'Ventas del año de la cadena (M COP)',v:tot,d:0,h:'visualizacion',t:'Visualización'},
+   {l:'Mes típico de la sede Norte (M COP, mediana)',v:stats(D.base).med,d:0,h:'descriptivo',t:'Descriptivo'},
+   {l:'Mejor error de pronóstico (RMSE, M COP)',v:bestTestRmse(),d:1,h:'predictivo',t:'Predictivo'},
+   {l:'Margen óptimo por jornada (miles de COP)',v:R.pa*o[0]+R.pb*o[1],d:0,h:'prescriptivo',t:'Prescriptivo'},
+   {l:'Clientes en la muestra para segmentar',v:K.pts.length,d:0,h:'mineria',t:'Minería'},
+   {l:'Reseñas positivas según el lector (%)',v:pos,d:0,h:'sentimientos',t:'Lenguaje'}];
+}
+function renderKpis(){
+  const list=kpiList();
+  $('#kpis').innerHTML=list.map((k,i)=>`<a class="kpi" href="#${k.h}"><small>${k.t}</small><b data-i="${i}">${fmt(REDUCED?k.v:0,k.d)}</b><span>${k.l}</span></a>`).join('');
+  if(REDUCED)return;const t0=performance.now();
+  (function step(now){const f=Math.min(1,(now-t0)/800),e=1-Math.pow(1-f,3);$$('#kpis b').forEach(b=>{const k=list[+b.dataset.i];b.textContent=fmt(k.v*e,k.d)});if(f<1&&current==='ruta')requestAnimationFrame(step)})(t0);
+}
+{const g0=renderers.ruta;renderers.ruta=()=>{g0();renderKpis();uiProg();HERO.size()}}
+
+/* hero animado */
+const HMODES=[['caos','Datos crudos','Miles de filas sin orden: así llegan los datos a Café Altiplano.'],['describir','Describir','Describir: ¿qué pasó? Resumes cientos de datos en una forma que se entiende.'],['predecir','Predecir','Predecir: ¿qué pasará? Una tendencia y una zona de incertidumbre.'],['agrupar','Agrupar','Agrupar: ¿qué patrones hay? Los tipos de cliente aparecen solos.'],['decidir','Decidir','Decidir: ¿qué hacemos? La mejor opción está en una esquina de lo posible.']];
+const HERO=(function(){
+  const cv=$('#hero-cv');const ctx=cv.getContext?cv.getContext('2d'):null;
+  const N=150,r=mulberry32(3);const ps=Array.from({length:N},()=>({x:r(),y:r(),vx:(r()-.5)*.004,vy:(r()-.5)*.004,g1:gauss(r),g2:gauss(r),u:r(),v:r(),tx:0,ty:0,a:1,c:0}));
+  const POLY=[[.08,.92],[.08,.42],[.46,.2],[.9,.62],[.9,.92]];
+  const inPoly=(x,y)=>{let c=false;for(let i=0,j=POLY.length-1;i<POLY.length;j=i++){const a=POLY[i],b=POLY[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c};
+  ps.forEach(p=>{let x=p.u,y=p.v,k=0;const rr=mulberry32(Math.floor(p.u*1e6)+7);while(!inPoly(x,y)&&k++<200){x=rr();y=rr()}p.px=x;p.py=y});
+  const bins=14,cnt=new Array(bins).fill(0);
+  ps.slice().sort((a,b)=>a.g1-b.g1).forEach(p=>{const b=Math.max(0,Math.min(bins-1,Math.floor((p.g1+2.8)/5.6*bins)));p.bin=b;p.si=cnt[b]++});
+  const maxRow=Math.ceil(Math.max(...cnt)/3);
+  const CEN=[[.22,.28],[.74,.32],[.5,.76]],CCOL=['#6FA2FF','#F2A33C','#9BE000'];
+  let mode=0,mStart=0,autoAt=0,W=0,H=0,dpr=1,R0={};
+  function size(){
+    if(!ctx)return;dpr=Math.min(2,window.devicePixelRatio||1);W=cv.clientWidth||600;H=cv.clientHeight||430;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    R0=W>=700?{x0:.58*W,x1:.95*W,y0:.14*H,y1:.8*H}:{x0:.08*W,x1:.92*W,y0:.45*H,y1:.79*H};
+  }
+  function targets(){
+    ps.forEach(p=>{
+      const m=HMODES[mode][0];p.a=1;
+      if(m==='describir'){const sub=p.si%3,row=Math.floor(p.si/3),ch=Math.min(.05,.86/maxRow);p.tx=(p.bin+.5)/bins+(sub-1)*.7/bins/3;p.ty=.94-(row+.5)*ch;p.c=0}
+      else if(m==='predecir'){const x=p.u;p.tx=x;p.ty=.82-.55*x+.07*p.g2*(1+x*.9);p.a=x>.75?.4:1;p.c=x>.75?2:1}
+      else if(m==='agrupar'){const k=Math.min(2,Math.floor(p.u*3));p.tx=Math.max(.03,Math.min(.97,CEN[k][0]+.07*p.g1));p.ty=Math.max(.03,Math.min(.97,CEN[k][1]+.09*p.g2));p.c=k+3}
+      else if(m==='decidir'){p.tx=p.px;p.ty=p.py;p.c=0}
+    });
+  }
+  function setMode(i,manual){mode=i;mStart=performance.now();autoAt=mStart+(manual?14000:4800);targets();
+    $('#h2-cap').textContent=HMODES[i][2];$$('#h2-chips button').forEach((b,j)=>{b.classList.toggle('on',j===i);b.setAttribute('aria-pressed',j===i)});
+    if(REDUCED)ps.forEach(p=>{if(HMODES[i][0]!=='caos'){p.x=p.tx;p.y=p.ty}});draw(performance.now())}
+  $('#h2-chips').innerHTML=HMODES.map((m,i)=>`<button type="button" data-m="${i}">${m[1]}</button>`).join('');
+  $('#h2-chips').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b)setMode(+b.dataset.m,true)});
+  const px=(x)=>R0.x0+x*(R0.x1-R0.x0), py=(y)=>R0.y0+y*(R0.y1-R0.y0);
+  function draw(now){
+    if(!ctx||!W)return;ctx.clearRect(0,0,W,H);const m=HMODES[mode][0],al=Math.min(1,(now-mStart)/900);
+    ctx.lineWidth=2;
+    if(m==='describir'){ctx.strokeStyle='rgba(199,216,203,.5)';ctx.beginPath();ctx.moveTo(px(0),py(.96));ctx.lineTo(px(1),py(.96));ctx.stroke()}
+    if(m==='predecir'){ctx.globalAlpha=al;ctx.fillStyle='rgba(242,163,60,.16)';ctx.beginPath();ctx.moveTo(px(.75),py(.82-.55*.75));ctx.lineTo(px(1),py(.27-.14));ctx.lineTo(px(1),py(.27+.14));ctx.closePath();ctx.fill();ctx.strokeStyle='#6FA2FF';ctx.beginPath();ctx.moveTo(px(0),py(.82));ctx.lineTo(px(1),py(.27));ctx.stroke();ctx.globalAlpha=1}
+    if(m==='decidir'){ctx.globalAlpha=al;ctx.fillStyle='rgba(155,224,0,.12)';ctx.strokeStyle='rgba(155,224,0,.8)';ctx.beginPath();POLY.forEach((q,i)=>i?ctx.lineTo(px(q[0]),py(q[1])):ctx.moveTo(px(q[0]),py(q[1])));ctx.closePath();ctx.fill();ctx.stroke();
+      const sx=px(.46),sy=py(.2);ctx.fillStyle='#fff';ctx.beginPath();for(let i=0;i<10;i++){const rr=i%2?5:11,a=-Math.PI/2+i*Math.PI/5;ctx.lineTo(sx+Math.cos(a)*rr,sy+Math.sin(a)*rr)}ctx.closePath();ctx.fill();ctx.font='600 12px Public Sans, sans-serif';ctx.fillText('óptimo',sx+14,sy+4);ctx.globalAlpha=1}
+    if(m==='agrupar'){ctx.globalAlpha=al;CEN.forEach((q,i)=>{ctx.strokeStyle=CCOL[i];ctx.beginPath();ctx.arc(px(q[0]),py(q[1]),Math.min(R0.x1-R0.x0,R0.y1-R0.y0)*.22,0,6.3);ctx.stroke()});ctx.globalAlpha=1}
+    ps.forEach(p=>{const col=m==='caos'?'#8FA595':p.c>=3?CCOL[p.c-3]:p.c===1?'#6FA2FF':p.c===2?'#F2A33C':'#9BE000';ctx.globalAlpha=p.a;ctx.fillStyle=col;ctx.beginPath();ctx.arc(px(p.x),py(p.y),3,0,6.3);ctx.fill()});ctx.globalAlpha=1;
+  }
+  function loop(now){
+    if(current==='ruta'&&!document.hidden&&ctx){
+      if(!W)size();
+      const caos=HMODES[mode][0]==='caos';
+      ps.forEach(p=>{if(caos){if(!REDUCED){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>1)p.vx*=-1;if(p.y<0||p.y>1)p.vy*=-1}}else{const k=REDUCED?1:.085;p.x+=(p.tx-p.x)*k;p.y+=(p.ty-p.y)*k}});
+      draw(now);if(!REDUCED&&now>autoAt)setMode((mode+1)%HMODES.length,false);
+    }
+    requestAnimationFrame(loop);
+  }
+  setMode(0,false);if(typeof requestAnimationFrame==='function')requestAnimationFrame(loop);
+  return {size(){size();draw(performance.now())}};
+})();
+
+/* ================= V2 · mejoras por módulo ================= */
+/* ---- Descriptivo: decisión de Daniela ---- */
+D.chosen=null;D.playT=null;
+function dDecRender(){
+  const all=D.base.concat([D.x]),st=stats(all),st0=stats(D.base);
+  const truth=st0.mean*12;
+  const est={mean:st.mean*12,med:st.med*12,max:st.max*12};
+  const names={mean:'Media',med:'Mediana',max:'Máximo'};
+  let h=`<h4>Decisión de Daniela</h4><p class="note" style="margin-top:0">Proyección anual = cifra típica × 12. Con un mes 16 de <b>${fmt(D.x,0)}</b> M COP, ¿qué cifra usas?</p><div class="row">${['mean','med','max'].map(k=>`<button class="chip${D.chosen===k?' on':''}" data-dk="${k}">${names[k]} <small>${fmt(est[k],0)}</small></button>`).join('')}</div>`;
+  if(D.chosen){
+    const err=est[D.chosen]-truth,ab=Math.abs(err);
+    h+=`<p class="bigl" style="margin-top:12px">Con la ${names[D.chosen].toLowerCase()} proyectas ${fmt(est[D.chosen],0)} M COP al año. Sin el pedido atípico, el año normal vale ≈ ${fmt(truth,0)} M COP.</p><div class="big ${ab>25?'neg':'pos'}">${err>=0?'+':'−'}${fmt(ab,0)} M COP</div><div class="bigl">${ab<=25?'Error pequeño: Daniela pide el café justo.':err>0?'Pedirías café para ventas que no existen.':'Te quedarías corto con el proveedor.'}</div>`;
+  }
+  $('#d-dec').innerHTML=h;
+  if(!PROG.desc){
+    setMs('desc',D.x<300?'Paso 1: sube el mes 16 a 300 o más (botón «Pedido corporativo» o «Ver el efecto»).':!D.chosen?'Paso 2: decide qué cifra usarás.':D.chosen==='med'?'':'Compara el error con el de la mediana.');
+  }
+}
+{const _d=dRender;dRender=function(){_d();dDecRender()};renderers.descriptivo=dRender;}
+$('#d-dec').addEventListener('click',e=>{const b=e.target.closest('[data-dk]');if(!b)return;D.chosen=D.chosen===b.dataset.dk?null:b.dataset.dk;dDecRender();if(D.chosen==='med'&&D.x>=300)award('desc')});
+$('#d-play').addEventListener('click',()=>{
+  if(D.playT){clearInterval(D.playT);D.playT=null;return}
+  if(REDUCED){D.x=400;dRender();return}
+  let x=120;D.x=x;dRender();
+  D.playT=setInterval(()=>{x+=7;if(x>=400){x=400;clearInterval(D.playT);D.playT=null}D.x=x;dRender()},30);
+});
+$('#d-x').addEventListener('input',()=>{if(D.playT){clearInterval(D.playT);D.playT=null}});
+
+/* ---- Predictivo: costo en pesos ---- */
+P.tried=new Set([P.deg]);P.mode='rmse';P.playT=null;
+const COST_OVER=0.35,COST_SHORT=0.55;
+function pCosts(){
+  const tr=P.pts.filter(p=>p.train),te=P.pts.filter(p=>!p.train);const out=[];
+  for(let d=1;d<=9;d++){const w=polyfit(tr.map(p=>p.x),tr.map(p=>p.y),d);let over=0,short=0;te.forEach(p=>{const e=polyval(w,p.x)-p.y;if(e>0)over+=COST_OVER*e;else short+=COST_SHORT*-e});out.push({d,over,short,total:over+short})}
+  return {out,n:te.length};
+}
+function pCostChart(cs){
+  const w=cw('#p-err'),mn=cs.out.reduce((a,b)=>b.total<a.total?b:a);
+  const cap=Math.min(Math.max(...cs.out.map(c=>c.total)),mn.total*6+5);
+  const f=frame({w,h:210,xd:[1,9],yd:[0,cap*1.05],xt:[1,2,3,4,5,6,7,8,9],xl:'Grado del polinomio (complejidad)',yl:'Costo (M COP)'});
+  const d=cs.out.map((c,i)=>(i?'L':'M')+f.sx(c.d).toFixed(1)+' '+f.sy(c.total).toFixed(1)).join('');
+  let g=`<clipPath id="cclip"><rect x="${f.m.l}" y="${f.m.t}" width="${f.pw}" height="${f.ph}"/></clipPath><g clip-path="url(#cclip)">`;
+  g+=`<line x1="${f.sx(P.deg).toFixed(1)}" x2="${f.sx(P.deg).toFixed(1)}" y1="${f.m.t}" y2="${f.m.t+f.ph}" style="stroke:var(--ink);stroke-width:1;stroke-dasharray:4 3;stroke-opacity:.6"/><path d="${d}" style="fill:none;stroke:var(--bad);stroke-width:2.5"/>`;
+  cs.out.forEach(c=>{g+=`<circle cx="${f.sx(c.d).toFixed(1)}" cy="${f.sy(c.total).toFixed(1)}" r="${c.d===P.deg?6:3.5}" style="fill:${c.d===mn.d?'var(--accent)':'var(--bad)'};stroke:var(--ink);stroke-width:${c.d===mn.d?2:0}"/>`});
+  $('#p-err').innerHTML=svg(w,210,f.axes+g+'</g>','Costo del error de pronóstico según el grado');
+}
+function pExtra(){
+  const cs=pCosts(),cur=cs.out[P.deg-1],mn=cs.out.reduce((a,b)=>b.total<a.total?b:a);
+  $('#p-deg').value=P.deg;P.tried.add(P.deg);
+  $('#p-m-rmse').classList.toggle('on',P.mode==='rmse');$('#p-m-cost').classList.toggle('on',P.mode==='cost');
+  $('#p-errsub').textContent=P.mode==='rmse'?'Raíz del error cuadrático medio (RMSE). Menos es mejor.':'Pesos que pierde Camilo en los meses de prueba. Pronosticar de más cuesta 0,35 M por cada M de exceso; de menos, 0,55 M por cada M de venta perdida.';
+  if(P.mode==='cost')pCostChart(cs);
+  const gap=cur.total-mn.total;
+  $('#p-cost').innerHTML=`<h4>Lo que le cuesta tu pronóstico a Camilo</h4><div class="big ${gap<0.5?'pos':'neg'}">${fmt(cur.total,1)} M COP</div><div class="bigl">en los ${cs.n} meses de prueba: ${fmt(cur.over,1)} por grano de más y ${fmt(cur.short,1)} por ventas perdidas.</div><p class="note">${P.deg===mn.d?pill('Es el grado más barato','ok'):`El grado ${mn.d} cuesta ${fmt(mn.total,1)} M COP: ${fmt(gap,1)} M menos que el tuyo.`}</p>`;
+  if(!PROG.pred){
+    if(P.tried.size>=3&&P.deg===mn.d)award('pred');
+    else setMs('pred',`Grados probados: ${Math.min(3,P.tried.size)} de 3${P.tried.size>=3?' · ahora ubícate en el grado que cuesta menos (lo ves en la gráfica de costo)':''}.`);
+  }
+}
+{const _p=pRender;pRender=function(){_p();pExtra()};renderers.predictivo=pRender;}
+$('#p-noise').addEventListener('input',()=>{P.tried=new Set([P.deg])});
+$('#p-regen').addEventListener('click',()=>{P.tried=new Set([P.deg])});
+$('#p-m-rmse').addEventListener('click',()=>{P.mode='rmse';pRender()});
+$('#p-m-cost').addEventListener('click',()=>{P.mode='cost';pRender()});
+$('#p-play').addEventListener('click',()=>{
+  if(P.playT){clearInterval(P.playT);P.playT=null;return}
+  P.mode='cost';P.deg=1;pRender();
+  P.playT=setInterval(()=>{if(P.deg>=9){clearInterval(P.playT);P.playT=null;return}P.deg++;pRender()},REDUCED?400:700);
+});
+$('#p-deg').addEventListener('input',()=>{if(P.playT){clearInterval(P.playT);P.playT=null}});
+
+/* ---- Prescriptivo: dinero sobre la mesa ---- */
+R.touched=false;R.walkT=null;
+function rExtra(){
+  const o=rGeom().opt,profit=R.pa*R.a+R.pb*R.b,optP=R.pa*o[0]+R.pb*o[1];
+  const feas=2*R.a+R.b<=R.H+1e-9&&R.a+2*R.b<=R.M+1e-9,pct=optP>0?profit/optP*100:0,gap=Math.max(0,optP-profit);
+  const el=$('#r-stats');
+  el.insertAdjacentHTML('beforeend',`<div class="dec" style="margin-top:12px"><h4>Dinero sobre la mesa</h4>${feas?`<div class="big ${gap<1?'pos':'neg'}">${fmt(gap,0)} mil COP</div><div class="bigl">que dejas de ganar por jornada con tu plan, unos ${fmt(gap*300/1000,1)} M COP al año (300 jornadas).</div>`:`<div class="big neg">Plan imposible</div><div class="bigl">Te pasas de horas de barista o de café: no se puede preparar.</div>`}${R.walkInfo?`<p class="note">${R.walkInfo}</p>`:''}</div>`);
+  if(!PROG.presc){
+    if(R.touched&&feas&&pct>=97)award('presc');
+    else setMs('presc',R.touched?(feas?`Tu plan captura ${fmt(pct,0)} % del óptimo. Falta llegar a 97 %.`:'Te saliste de la zona verde: vuelve a ella.'):'Mueve el punto o los deslizadores de plan (los botones de «óptimo» no cuentan).');
+  }
+}
+{const _r=rRender;rRender=function(){_r();rExtra()};renderers.prescriptivo=rRender;}
+const rStop=()=>{if(R.walkT){clearInterval(R.walkT);R.walkT=null}R.walkInfo=''};
+$('#r-chart').addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('[data-drag]')){R.touched=true;rStop()}});
+['r-a','r-b'].forEach(id=>$('#'+id).addEventListener('input',()=>{R.touched=true;rStop()}));
+$('#r-opt').addEventListener('click',()=>{R.touched=false;rStop();rRender()});
+$('#r-reset').addEventListener('click',()=>{R.touched=false;rStop();rRender()});
+$('#r-walk').addEventListener('click',()=>{
+  if(R.walkT){rStop();rRender();return}
+  const g=rGeom(),poly=g.poly,pr=q=>R.pa*q[0]+R.pb*q[1];
+  let i=0;const path=[poly[0]];
+  for(let it=0;it<8;it++){const n=poly.length,a=poly[(i+1)%n],b=poly[(i+n-1)%n];const best=pr(a)>=pr(b)?(i+1)%n:(i+n-1)%n;if(pr(poly[best])>pr(poly[i])+1e-9){i=best;path.push(poly[i])}else break}
+  R.touched=false;let seg=0,s=0;const S=REDUCED?1:20;
+  R.a=path[0][0];R.b=path[0][1];R.walkInfo=`Esquina 1: margen ${fmt(pr(path[0]),0)} mil COP`;rRender();
+  R.walkT=setInterval(()=>{
+    if(seg>=path.length-1){rStop();rRender();return}
+    s++;const A0=path[seg],A1=path[seg+1];R.a=A0[0]+(A1[0]-A0[0])*s/S;R.b=A0[1]+(A1[1]-A0[1])*s/S;
+    if(s>=S){seg++;s=0;R.walkInfo=`Esquina ${seg+1} de ${path.length}: margen ${fmt(pr(path[seg]),0)} mil COP${seg===path.length-1?' · ¡el óptimo!':''}`}
+    rRender();
+  },40);
+});
+
+/* ---- Minería: animación, segmentos y campaña ---- */
+K.playing=false;K.camp=null;
+const segName=(f,g,i,all)=>{let n=f>=50&&g>=50?'Fieles de alto gasto':f>=50?'Frecuentes de gasto bajo':g>=50?'Ocasionales de gasto alto':'Ocasionales de gasto bajo';return all.filter(x=>x.nm0===n).length?n+' '+(i+1):n};
+function kSegs(){
+  const N=K.pts.length,out=[];
+  K.c.forEach((_,i)=>{const m=K.pts.filter((_,j)=>K.a[j]===i),n=m.length;if(!n)return;const f=m.reduce((s,p)=>s+p.x,0)/n,g=m.reduce((s,p)=>s+p.y,0)/n;
+    const resp=0.02+0.0012*f,ticket=8+0.5*g,pc=resp*ticket*0.6-0.2,contacts=n/N*3000;
+    const nm0=f>=50&&g>=50?'Fieles de alto gasto':f>=50?'Frecuentes de gasto bajo':g>=50?'Ocasionales de gasto alto':'Ocasionales de gasto bajo';
+    out.push({i,n,f,g,resp,ticket,pc,contacts,total:contacts*pc,nm0,name:segName(f,g,i,out)})});
+  return out;
+}
+function kCampRender(){
+  const el=$('#k-camp');
+  if(!K.a||!K.done){el.innerHTML='<h4>Campaña de WhatsApp</h4><p class="note" style="margin:0">Cuando el algoritmo converja verás los segmentos con nombre y podrás elegir a quién escribirle.</p>';if(!PROG.seg)setMs('seg',K.k<3?'Sube k a 3 o más y ejecuta el algoritmo hasta converger.':'Pulsa «Animar el algoritmo» o «Hasta converger».');K.camp=null;return}
+  const sg=kSegs(),best=sg.reduce((a,b)=>b.total>a.total?b:a);
+  el.innerHTML=`<h4>Campaña de WhatsApp · 3.000 mensajes repartidos por tamaño</h4><div class="tbl-wrap"><table class="tbl"><tr><th>Segmento</th><th>Clientes</th><th>Responde</th><th>Ticket</th><th>Ganancia esperada</th><th></th></tr>${sg.map(s=>`<tr><td><i class="sw" style="background:${CC[s.i]}"></i>${s.name}</td><td class="n">${s.n}</td><td class="n">${fmt(s.resp*100,1)} %</td><td class="n">${fmt(s.ticket,0)} mil</td><td class="n">${fmt(s.total/1000,1)} M COP</td><td><button class="btn sm" data-camp="${s.i}">Enviar aquí</button></td></tr>`).join('')}</table></div><p class="note">Ganancia por mensaje = probabilidad de respuesta × ticket × 60 % de margen − 0,2 mil COP de costo.</p>${K.camp!==null?(()=>{const c=sg.find(s=>s.i===K.camp);if(!c)return'';const ok=c.i===best.i;return `<div class="big ${ok?'pos':'neg'}">${fmt(c.total/1000,1)} M COP</div><p class="note">${ok?pill('¡El segmento más rentable!','ok'):pill('Hay uno mejor','warn')} ${ok?'Los más frecuentes no siempre son los más rentables: importa también cuánto gastan y cuántos son.':`«${best.name}» daría ${fmt(best.total/1000,1)} M COP, ${fmt((best.total-c.total)/1000,1)} M más.`}</p>`})():''}`;
+  if(!PROG.seg)setMs('seg',K.k<3?'Usa k = 3 o más para tener segmentos con sentido de negocio.':K.camp===null?'Elige a qué segmento le enviarás la campaña.':'');
+}
+$('#k-camp').addEventListener('click',e=>{const b=e.target.closest('[data-camp]');if(!b)return;K.camp=K.camp===+b.dataset.camp?null:+b.dataset.camp;kCampRender();if(K.camp===null)return;const sg=kSegs(),best=sg.reduce((a,c)=>c.total>a.total?c:a);if(K.camp===best.i&&K.k>=3&&K.done)award('seg')});
+{const _k=kRender;kRender=function(){_k();kCampRender()};}
+renderers.mineria=()=>{kRender();aRender()};
+function kAnim(done){
+  if(K.done){done(false);return}
+  const old=K.c.map(q=>({x:q.x,y:q.y}));kStep();
+  if(K.done){kRender();done(false);return}
+  const nw=K.c.map(q=>({x:q.x,y:q.y}));K.c=old;const S=REDUCED?1:8;let s=0;
+  const iv=setInterval(()=>{s++;K.c=old.map((q,i)=>({x:q.x+(nw[i].x-q.x)*s/S,y:q.y+(nw[i].y-q.y)*s/S}));kRender();if(s>=S){clearInterval(iv);K.c=nw;done(true)}},60);
+}
+function kLock(on){['k-step','k-run','k-reset','k-k'].forEach(id=>{$('#'+id).disabled=on})}
+$('#k-play').addEventListener('click',()=>{
+  if(K.playing){return}
+  if(K.done||(K.a&&false))kReset(false);
+  K.playing=true;kLock(true);$('#k-play').disabled=true;
+  (function go(){kAnim(more=>{if(more&&K.iter<60)setTimeout(go,400);else{K.playing=false;kLock(false);$('#k-play').disabled=false;kRender()}})})();
+});
+$('#a-combo').addEventListener('click',()=>{
+  const rs=aRules();if(!rs.length){$('#a-combomsg').textContent='Ninguna regla cumple los umbrales: bájalos primero.';return}
+  const r=rs[0],n=A.b.filter(b=>b.includes(r.x)&&!b.includes(r.y)).length;
+  $('#a-combomsg').textContent=`Combo «${r.x} + ${r.y}» creado: ${fmt(r.conf*100,0)} % de quienes llevan ${r.x} ya llevan ${r.y} (lift ${fmt(r.lift,2)}). Las otras ${n} cestas con ${r.x} son oportunidad de venta cruzada.`;
+});
+
+/* ---- Visualización: titulares, animación y misión ---- */
+V.touched=false;V.sig='';V.done=V.done||{};
+function vHeadline(pl){
+  const rows=V.ds.rows,num=n=>rows.map(r=>+r[n]).filter(v=>!isNaN(v));
+  const grp=(xn,yn)=>{const m=new Map();rows.forEach(r=>{const v=+r[yn];if(isNaN(v))return;const e=m.get(r[xn])||{s:0,n:0};e.s+=v;e.n++;m.set(r[xn],e)});return [...m].map(([k,e])=>({k,v:V.agg==='mean'?e.s/e.n:e.s}))};
+  try{
+    if(pl.kind==='bar'){const g=grp(pl.x,pl.y);if(!g.length)return'';g.sort((a,b)=>b.v-a.v);const t=g.reduce((s,x)=>s+x.v,0);return V.agg==='mean'?`«${esc(g[0].k)}» tiene el mayor promedio de ${esc(pl.y)}: ${fmt(g[0].v,1)}, frente a ${fmt(g[g.length-1].v,1)} en «${esc(g[g.length-1].k)}».`:`«${esc(g[0].k)}» lidera en ${esc(pl.y)} con ${fmt(g[0].v/t*100,0)} % del total (${fmt(g[0].v,0)}); «${esc(g[g.length-1].k)}» es la más baja con ${fmt(g[g.length-1].v/t*100,0)} %.`}
+    if(pl.kind==='line'){const g=grp(pl.x,pl.y).sort((a,b)=>cmpAuto(a.k,b.k));if(g.length<2)return'';const hi=g.reduce((a,b)=>b.v>a.v?b:a),lo=g.reduce((a,b)=>b.v<a.v?b:a);return `El pico de ${esc(pl.y)} está en ${esc(pl.x)} ${esc(hi.k)} (${fmt(hi.v,0)}) y el valle en ${esc(lo.k)} (${fmt(lo.v,0)}): ${fmt(hi.v/lo.v,1)} veces más.`}
+    if(pl.kind==='scatter'){const xs=num(pl.x),ys=num(pl.y),n=Math.min(xs.length,ys.length);const mx=xs.reduce((a,b)=>a+b,0)/n,my=ys.reduce((a,b)=>a+b,0)/n;let sxy=0,sx=0,sy=0;for(let i=0;i<n;i++){sxy+=(xs[i]-mx)*(ys[i]-my);sx+=(xs[i]-mx)**2;sy+=(ys[i]-my)**2}const r=sxy/Math.sqrt(sx*sy||1);return `${r>=.4?'Más':r<=-.4?'Menos':'Sin una relación clara entre'} ${esc(pl.x)} ${r>=.4?'se asocia con más':r<=-.4?'se asocia con más':'y'} ${esc(pl.y)} (r = ${fmt(r,2)}). ${Math.abs(r)>=.4?'Asociación no es causa.':''}`}
+    if(pl.kind==='hist'){const v=num(pl.x).sort((a,b)=>a-b);const med=v[Math.floor(v.length/2)];return `La mitad de los registros de ${esc(pl.x)} está por debajo de ${fmt(med,1)}; el máximo llega a ${fmt(v[v.length-1],1)}.`}
+    if(pl.kind==='heat')return `Busca las celdas más oscuras: ahí se concentra ${esc(V.ds.measure)} entre ${esc(pl.x)} y ${esc(pl.y)}.`;
+    if(pl.kind==='count')return `Hay ${V.ds.rows.length.toLocaleString('es-CO')} registros repartidos por ${esc(pl.x)}.`;
+  }catch(_){}
+  return '';
+}
+function vMis(pl){
+  if(!V.isExample||!pl)return;
+  if(V.touched){
+    if(pl.kind==='bar'&&pl.x==='sede'&&pl.y==='ventas')V.done.bar=1;
+    if(pl.kind==='line'&&pl.x==='mes'&&pl.y==='ventas'&&V.c==='producto')V.done.line=1;
+    if(pl.kind==='scatter'&&[pl.x,pl.y].sort().join()==='publicidad,ventas')V.done.sc=1;
+  }
+  const ck=(k,t)=>`<span class="chk">${V.done[k]?'✓':'○'} ${t}</span>`;
+  const txt=ck('bar','Barras: sede × ventas')+ck('line','Líneas: mes × ventas por producto')+ck('sc','Dispersión: publicidad × ventas');
+  if(V.done.bar&&V.done.line&&V.done.sc)award('viz');else setMs('viz',txt);
+}
+{const _v=vRender;vRender=function(){_v();const pl=V.plan;const h=pl?vHeadline(pl):'';$('#v-head').innerHTML=h?`<h3>Titular automático</h3><p style="margin:0;font:700 18px/1.3 var(--display)">${h}</p>`:'';
+  const sig=pl?[pl.kind,pl.x,pl.y,V.c,V.agg,V.sort].join('|'):'';const sv=$('#v-chart svg');if(sv&&sig!==V.sig){sv.classList.remove('enter');void sv.getBoundingClientRect();sv.classList.add('enter')}V.sig=sig;vMis(pl)};renderers.visualizacion=vRender;}
+$('#m-visualizacion').addEventListener('click',()=>{V.touched=true},true);
+$('#m-visualizacion').addEventListener('drop',()=>{V.touched=true},true);
+
+/* ================= V2 · Taller de modelos (pipeline de ML) ================= */
+const MF=[{id:'publicidad',t:'Publicidad',type:'num'},{id:'precio',t:'Precio',type:'num'},{id:'mes',t:'Mes',type:'num'},{id:'producto',t:'Producto',type:'cat'},{id:'sede',t:'Sede',type:'cat'},{id:'unidades',t:'Unidades vendidas',type:'num',trap:true}];
+const MM=[['avg','Promedio (línea base)'],['lin','Regresión lineal'],['knn','k vecinos'],['tree','Árbol de decisión']];
+const MS={feats:new Set(['publicidad','mes']),model:'lin',hp:5,test:25,seed:1,saved:[],last:-1,touched:false,drag:null};
+const M_THR=0.55; // el modelo debe reducir al menos 45 % del error de la línea base
+function solveSys(A,b){
+  const n=b.length,M=A.map((r,i)=>r.concat([b[i]]));
+  for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(M[r][i])>Math.abs(M[p][i]))p=r;[M[i],M[p]]=[M[p],M[i]];
+    if(Math.abs(M[i][i])<1e-12)M[i][i]=1e-12;
+    for(let r=i+1;r<n;r++){const f=M[r][i]/M[i][i];for(let c=i;c<=n;c++)M[r][c]-=f*M[i][c]}}
+  const w=new Array(n).fill(0);for(let i=n-1;i>=0;i--){let s=M[i][n];for(let j=i+1;j<n;j++)s-=M[i][j]*w[j];w[i]=s/M[i][i]}return w;
+}
+function mSplit(){
+  const N=SALES.rows.length,r=mulberry32(MS.seed*7919+1),idx=Array.from({length:N},(_,i)=>i);
+  for(let i=N-1;i>0;i--){const j=Math.floor(r()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  const nt=Math.round(N*MS.test/100);return {te:idx.slice(0,nt),tr:idx.slice(nt)};
+}
+function mBuild(sp){
+  const feats=MF.filter(f=>MS.feats.has(f.id)),cols=[];
+  feats.forEach(f=>{if(f.type==='num')cols.push({name:f.id,f:f.id,get:r=>+r[f.id],oh:false});
+    else[...new Set(SALES.rows.map(r=>r[f.id]))].sort().forEach(c=>cols.push({name:f.id+' = '+c,f:f.id,get:r=>r[f.id]===c?1:0,oh:true}))});
+  const raw=idx=>idx.map(i=>cols.map(c=>c.get(SALES.rows[i])));
+  const Xtr=raw(sp.tr),Xte=raw(sp.te);
+  const mu=cols.map((_,j)=>Xtr.reduce((s,r)=>s+r[j],0)/Xtr.length),sd=cols.map((_,j)=>Math.sqrt(Xtr.reduce((s,r)=>s+(r[j]-mu[j])**2,0)/Xtr.length)||1);
+  const z=X=>X.map(r=>r.map((v,j)=>(v-mu[j])/sd[j]));
+  return {cols,Xtr,Xte,Ztr:z(Xtr),Zte:z(Xte),ytr:sp.tr.map(i=>SALES.rows[i].ventas),yte:sp.te.map(i=>SALES.rows[i].ventas)};
+}
+function treeFit(X,y,depth,minLeaf){
+  const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+  function grow(ix,d){
+    const ys=ix.map(i=>y[i]),node={n:ix.length,v:mean(ys)};
+    if(d>=depth||ix.length<2*minLeaf)return node;
+    let best=null;const tot=ys.reduce((s,v)=>s+v,0),totSq=ys.reduce((s,v)=>s+v*v,0),sse0=totSq-tot*tot/ix.length;
+    for(let c=0;c<X[0].length;c++){
+      const o=ix.slice().sort((a,b)=>X[a][c]-X[b][c]);let sL=0,qL=0;
+      for(let k=0;k<o.length-1;k++){const v=y[o[k]];sL+=v;qL+=v*v;const nL=k+1,nR=o.length-nL;
+        if(X[o[k]][c]===X[o[k+1]][c]||nL<minLeaf||nR<minLeaf)continue;
+        const sR=tot-sL,qR=totSq-qL,sse=(qL-sL*sL/nL)+(qR-sR*sR/nR);
+        if(!best||sse<best.sse)best={sse,c,thr:(X[o[k]][c]+X[o[k+1]][c])/2}}}
+    if(!best||best.sse>=sse0-1e-9)return node;
+    node.c=best.c;node.thr=best.thr;node.l=grow(ix.filter(i=>X[i][best.c]<=best.thr),d+1);node.r=grow(ix.filter(i=>X[i][best.c]>best.thr),d+1);return node;
+  }
+  return grow(X.map((_,i)=>i),0);
+}
+const treePred=(t,x)=>{while(t.l)t=x[t.c]<=t.thr?t.l:t.r;return t.v};
+function treeText(t,cols,d,out){
+  const pad='  '.repeat(d);
+  if(!t.l){out.push(`${pad}→ predice ${fmt(t.v,1)} M COP (${t.n} casos)`);return}
+  const c=cols[t.c];
+  if(c.oh){out.push(`${pad}${c.name.replace(' = ',' ≠ ')}:`);treeText(t.l,cols,d+1,out);out.push(`${pad}${c.name}:`);treeText(t.r,cols,d+1,out)}
+  else{out.push(`${pad}${c.name} ≤ ${fmt(t.thr,t.thr<10?2:0)}:`);treeText(t.l,cols,d+1,out);out.push(`${pad}${c.name} > ${fmt(t.thr,t.thr<10?2:0)}:`);treeText(t.r,cols,d+1,out)}
+}
+function mTrain(){
+  const sp=mSplit(),B=mBuild(sp),mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+  const m0=mean(B.ytr),nc=B.cols.length;let pTe,pTr,tree=null;
+  const lab=MS.model;
+  if(lab==='avg'||nc===0){pTe=B.yte.map(()=>m0);pTr=B.ytr.map(()=>m0)}
+  else if(lab==='lin'){
+    const A=B.Ztr.map(r=>[1].concat(r)),n=nc+1,XtX=Array.from({length:n},()=>new Array(n).fill(0)),Xty=new Array(n).fill(0);
+    A.forEach((r,k)=>{for(let i=0;i<n;i++){Xty[i]+=r[i]*B.ytr[k];for(let j=0;j<n;j++)XtX[i][j]+=r[i]*r[j]}});
+    for(let i=1;i<n;i++)XtX[i][i]+=1e-3;const w=solveSys(XtX,Xty);
+    const f=z=>w[0]+z.reduce((s,v,j)=>s+v*w[j+1],0);pTe=B.Zte.map(f);pTr=B.Ztr.map(f);
+  }else if(lab==='knn'){
+    const k=Math.min(MS.hp,B.Ztr.length),f=(z,self)=>{const d=B.Ztr.map((q,i)=>[q.reduce((s,v,j)=>s+(v-z[j])**2,0),i]).sort((a,b)=>a[0]-b[0]);return mean(d.slice(0,k).map(x=>B.ytr[x[1]]))};
+    pTe=B.Zte.map(z=>f(z));pTr=B.Ztr.map(z=>f(z));
+  }else{
+    tree=treeFit(B.Xtr,B.ytr,MS.hp,4);pTe=B.Xte.map(x=>treePred(tree,x));pTr=B.Xtr.map(x=>treePred(tree,x));
+  }
+  const rm=(p,y)=>Math.sqrt(p.reduce((s,v,i)=>s+(v-y[i])**2,0)/p.length);
+  return {B,tree,pTe,rmTe:rm(pTe,B.yte),rmTr:rm(pTr,B.ytr),base:rm(B.yte.map(()=>m0),B.yte),leak:MS.feats.has('unidades'),nc};
+}
+function mBuckets(){
+  const chip=f=>`<span class="fchip${MS.feats.has(f.id)?' on':''}${f.trap?' trap':''}" draggable="true" data-f="${f.id}" tabindex="0" role="button" aria-pressed="${MS.feats.has(f.id)}">${f.t} <small style="opacity:.7">${f.type==='num'?'número':'categoría'}</small></span>`;
+  const a=MF.filter(f=>!MS.feats.has(f.id)),u=MF.filter(f=>MS.feats.has(f.id));
+  $('#m-buckets').innerHTML=`<div class="tpb" data-b="off"><b>Disponibles</b>${a.map(chip).join('')||'<span class="note">—</span>'}</div><div class="tpb" data-b="on"><b>Que usa el modelo</b>${u.map(chip).join('')||'<span class="note">Arrastra o toca una variable</span>'}</div>`;
+}
+function mRender(){
+  mBuckets();
+  const hpM={knn:['Vecinos (k)',1,15],tree:['Profundidad máxima del árbol',1,8]}[MS.model];
+  $('#m-hp-wrap').style.display=hpM?'':'none';
+  if(hpM){const s=$('#m-hp');s.min=hpM[1];s.max=hpM[2];MS.hp=Math.max(hpM[1],Math.min(hpM[2],MS.hp));s.value=MS.hp;$('#m-hp-l').textContent=hpM[0];$('#m-hpo').textContent=MS.hp}
+  $('#m-testo').textContent=MS.test+' %';
+  $('#m-models').innerHTML=MM.map(([id,t])=>`<button class="chip${MS.model===id?' on':''}" data-md="${id}">${t}</button>`).join('');
+  const r=mTrain(),imp=(1-r.rmTe/r.base)*100;
+  $('#m-warn').innerHTML=r.leak?`<span class="pill bad">⚠ Fuga de datos</span> «Unidades vendidas» solo se conoce <b>después</b> de vender, y ventas = unidades × precio. El modelo «acierta» porque ya sabe la respuesta; en la vida real no tendrías esa columna al pronosticar.`:r.nc===0?'<span class="pill warn">Elige al menos una variable</span>':'';
+  // gráfico predicho vs real
+  const w=cw('#m-chart'),mx=Math.ceil(Math.max(...r.B.yte,...r.pTe)/5)*5||5;
+  const f=frame({w,h:300,xd:[0,mx],yd:[0,mx],xl:'Ventas predichas (M COP)',yl:'Ventas reales (M COP)'});
+  let g=`<line x1="${f.sx(0)}" y1="${f.sy(0)}" x2="${f.sx(mx)}" y2="${f.sy(mx)}" style="stroke:var(--muted);stroke-dasharray:5 4"/>`;
+  r.pTe.forEach((p,i)=>{g+=`<circle cx="${f.sx(p).toFixed(1)}" cy="${f.sy(r.B.yte[i]).toFixed(1)}" r="4" style="fill:${r.leak?'var(--bad)':'var(--c2)'};fill-opacity:.75"/>`});
+  $('#m-chart').innerHTML=svg(w,300,f.axes+g,'Ventas predichas contra ventas reales en la partición de prueba');
+  const over=r.rmTr<r.rmTe*0.6&&r.rmTe>r.rmTr+0.5;
+  $('#m-stats').innerHTML=`<h3>Resultado en datos que no vio</h3><dl class="kv"><dt>Error del modelo (RMSE, prueba)</dt><dd>${fmt(r.rmTe,2)} M</dd><dt>Error de adivinar el promedio</dt><dd>${fmt(r.base,2)} M</dd><dt>Error en entrenamiento</dt><dd>${fmt(r.rmTr,2)} M</dd><dt>Filas de entrenamiento · prueba</dt><dd>${r.B.ytr.length} · ${r.B.yte.length}</dd></dl><div class="big ${imp>=45&&!r.leak?'pos':''}" style="margin-top:10px">${imp>=0?'−':'+'}${fmt(Math.abs(imp),0)} %</div><div class="bigl">${imp>=0?'menos':'más'} error que la línea base${over?' · '+'<b>ojo: sobreajuste</b> (mucho mejor en entrenamiento que en prueba)':''}</div>`;
+  const rl=$('#m-rules');
+  if(r.tree){const out=[];treeText(r.tree,r.B.cols,0,out);rl.hidden=false;rl.innerHTML=`<h3>Las reglas que aprendió el árbol</h3><pre style="margin:6px 0 0;font:12.5px/1.5 var(--mono);white-space:pre-wrap;max-height:260px;overflow:auto">${esc(out.slice(0,30).join('\n'))}${out.length>30?'\n…':''}</pre>`}else rl.hidden=true;
+  mLb(r);mCode(r);
+  if(!PROG.ml){const best=mBest();setMs('ml',best==null?'Guarda un intento en el ranking cuando creas que superó la línea base en un 45 % o más (sin variables con fuga).':`Tu mejor intento válido reduce ${fmt(best,0)} % del error. Meta: 45 % o más.`)}
+}
+function mBest(){const v=MS.saved.filter(s=>!s.leak&&s.test===MS.test&&s.seed===MS.seed);return v.length?Math.max(...v.map(s=>s.imp)):null}
+function mLb(r){
+  const rows=MS.saved.filter(s=>s.test===MS.test&&s.seed===MS.seed).slice().sort((a,b)=>a.rmse-b.rmse);
+  $('#m-lb').innerHTML=`<table class="lb"><tr><th>Intento</th><th style="text-align:right">RMSE</th></tr><tr><td>Línea base (promedio)</td><td class="n">${fmt(r.base,2)}</td></tr>${rows.map(s=>`<tr class="${s.id===MS.last?'me':''}"><td>${s.leak?'⚠ ':''}${esc(s.label)}</td><td class="n">${fmt(s.rmse,2)}</td></tr>`).join('')}</table>`+(rows.length?'':'<p class="note">Aún no guardas intentos con esta partición.</p>');
+}
+function mCode(r){mCodeDraw()}
+const mCodeDraw=codePanel('code-ml',()=>{
+  const fs=MF.filter(f=>MS.feats.has(f.id)),nums=fs.filter(f=>f.type==='num').map(f=>f.id),cats=fs.filter(f=>f.type==='cat').map(f=>f.id),all=fs.map(f=>f.id);
+  const q=a=>'['+a.map(x=>`"${x}"`).join(', ')+']';
+  const mdl={avg:'DummyRegressor(strategy="mean")',lin:'LinearRegression()',knn:`KNeighborsRegressor(n_neighbors=${MS.hp})`,tree:`DecisionTreeRegressor(max_depth=${MS.hp}, min_samples_leaf=4, random_state=0)`}[MS.model];
+  const imp={avg:'from sklearn.dummy import DummyRegressor',lin:'from sklearn.linear_model import LinearRegression',knn:'from sklearn.neighbors import KNeighborsRegressor',tree:'from sklearn.tree import DecisionTreeRegressor'}[MS.model];
+  const tr=[];if(nums.length)tr.push(`("num", StandardScaler(), ${q(nums)})`);if(cats.length)tr.push(`("cat", OneHotEncoder(), ${q(cats)})`);
+  const py=`import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.pipeline import make_pipeline
+${imp}
+from sklearn.metrics import mean_squared_error
+${MS.feats.has('unidades')?'\n# ⚠ "unidades" solo se conoce después de vender: es fuga de datos\n':''}
+df = pd.read_csv("cafe_altiplano.csv")
+X = df[${q(all)||'[]'}]
+y = df["ventas"]
+
+# 1. separar: el modelo nunca ve la parte de prueba (${MS.test} %)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=${MS.test/100}, random_state=${MS.seed})
+
+# 2. preparar variables y 3. entrenar
+prep = ColumnTransformer([${tr.join(',\n                          ')}])
+modelo = make_pipeline(prep, ${mdl})
+modelo.fit(X_tr, y_tr)
+
+# 4. evaluar contra la línea base
+rmse = lambda real, pred: mean_squared_error(real, pred) ** 0.5
+print("RMSE prueba:", rmse(y_te, modelo.predict(X_te)))
+print("RMSE línea base:", rmse(y_te, [y_tr.mean()] * len(y_te)))`;
+  const fm=all.length?all.join(' + '):'1';
+  const rm={avg:'pred <- rep(mean(train$ventas), nrow(test))',lin:`modelo <- lm(ventas ~ ${fm}, data = train)\npred <- predict(modelo, test)`,knn:`library(caret)\nmodelo <- knnreg(ventas ~ ${fm}, data = train, k = ${MS.hp})   # escala antes las variables numéricas\npred <- predict(modelo, test)`,tree:`library(rpart)\nmodelo <- rpart(ventas ~ ${fm}, data = train, method = "anova",\n                control = rpart.control(maxdepth = ${MS.hp}, minbucket = 4))\npred <- predict(modelo, test)`}[MS.model];
+  const rr=`datos <- read.csv("cafe_altiplano.csv")
+
+set.seed(${MS.seed})
+idx   <- sample(nrow(datos), size = round(${1-MS.test/100} * nrow(datos)))
+train <- datos[idx, ]      # entrenamiento
+test  <- datos[-idx, ]     # prueba: el modelo nunca la ve
+
+${rm}
+
+rmse <- function(real, pred) sqrt(mean((real - pred)^2))
+rmse(test$ventas, pred)                          # error del modelo
+rmse(test$ventas, mean(train$ventas))            # línea base`;
+  return [{label:'Python (scikit-learn)',code:py},{label:'R',code:rr}];
+});
+/* eventos del taller */
+const mToggle=id=>{if(MS.feats.has(id))MS.feats.delete(id);else MS.feats.add(id);MS.touched=true;mRender()};
+$('#m-buckets').addEventListener('click',e=>{const c=e.target.closest('[data-f]');if(c)mToggle(c.dataset.f)});
+$('#m-buckets').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const c=e.target.closest('[data-f]');if(c){e.preventDefault();mToggle(c.dataset.f)}}});
+$('#m-buckets').addEventListener('dragstart',e=>{const c=e.target.closest('[data-f]');if(!c)return;MS.drag=c.dataset.f;try{e.dataTransfer.setData('text/plain',MS.drag);e.dataTransfer.effectAllowed='move'}catch(_){}});
+$('#m-buckets').addEventListener('dragover',e=>{if(MS.drag){e.preventDefault();const b=e.target.closest('[data-b]');$$('.tpb',$('#m-buckets')).forEach(x=>x.classList.toggle('over',x===b))}});
+$('#m-buckets').addEventListener('drop',e=>{const b=e.target.closest('[data-b]');if(!b||!MS.drag)return;e.preventDefault();const id=MS.drag;MS.drag=null;const want=b.dataset.b==='on';if(MS.feats.has(id)!==want){if(want)MS.feats.add(id);else MS.feats.delete(id)}MS.touched=true;mRender()});
+$('#m-buckets').addEventListener('dragend',()=>{MS.drag=null;$$('.tpb',$('#m-buckets')).forEach(x=>x.classList.remove('over'))});
+$('#m-models').addEventListener('click',e=>{const b=e.target.closest('[data-md]');if(!b)return;MS.model=b.dataset.md;MS.touched=true;mRender()});
+$('#m-hp').addEventListener('input',e=>{MS.hp=+e.target.value;MS.touched=true;mRender()});
+$('#m-test').addEventListener('input',e=>{MS.test=+e.target.value;mRender()});
+$('#m-shuffle').addEventListener('click',()=>{MS.seed++;mRender()});
+$('#m-save').addEventListener('click',()=>{
+  const r=mTrain(),imp=(1-r.rmTe/r.base)*100,md=MM.find(m=>m[0]===MS.model)[1],hp=MS.model==='knn'?` k=${MS.hp}`:MS.model==='tree'?` prof.=${MS.hp}`:'';
+  const names=MF.filter(f=>MS.feats.has(f.id)).map(f=>f.id).join(', ')||'ninguna';
+  const id=Date.now()+Math.random();MS.last=id;
+  MS.saved.push({id,label:`${md}${hp} · ${names}`,rmse:r.rmTe,imp,leak:r.leak,test:MS.test,seed:MS.seed});
+  let msg;
+  if(r.leak)msg='Guardado, pero usa una variable con fuga de datos: no cuenta para la misión.';
+  else if(imp>=45){msg='¡Supera la meta!';award('ml')}
+  else msg=`Reduce ${fmt(Math.max(0,imp),0)} % del error. Necesitas 45 % o más: prueba otras variables o modelo.`;
+  $('#m-savemsg').textContent=msg;mRender();
+});
+renderers.taller=mRender;
+
+/* ================= V2 · NLP en vivo, quiz y arranque ================= */
+addLex(2,'delicioso deliciosa cremoso cremosa buenisimo buenisima exquisito exquisita');
+addLex(1,'rico rica limpio limpia atento atenta atentos amables fresco fresca sabroso sabrosa agradable');
+addLex(-2,'asco inaceptable');
+addLex(-1,'frio fria aguado aguada amargo amarga sucia incompleto incompleta mal eternidad larga largo tardaron demoraron quemado quemada derramado derramada cobran decepcion');
+const TOPICS=['Demora','Temperatura','Precio','Limpieza','Empaque','Sabor'];
+const FEED_POOL=[
+ {t:'El capuchino quedó cremoso y delicioso, atención súper amable'},
+ {t:'Excelente café, el lugar estaba limpio y el servicio rápido'},
+ {t:'Me encanta el cold brew, perfecto para la tarde'},
+ {t:'La panadería es rica y los precios son buenos'},
+ {t:'Muy buena atención, lo recomiendo'},
+ {t:'Café de calidad y empaque muy bonito'},
+ {t:'Genial el latte, el barista fue muy atento'},
+ {t:'Todo perfecto, rápido y delicioso'},
+ {t:'Me gusta mucho este sitio, el café es espectacular'},
+ {t:'El pan estaba fresco y rico, gracias'},
+ {t:'Excelente servicio en la sede Norte, muy amables'},
+ {t:'Tardaron una eternidad en entregar el pedido',topic:'Demora'},
+ {t:'El latte llegó frío y aguado',topic:'Temperatura'},
+ {t:'Pésimo, esperamos una hora y el café estaba frío',topic:'Demora'},
+ {t:'La mesa estaba sucia y nadie vino a limpiar',topic:'Limpieza'},
+ {t:'Muy caro para un café tan aguado',topic:'Precio'},
+ {t:'El pedido llegó incompleto y el vaso roto',topic:'Empaque'},
+ {t:'No me gustó, el café sabe amargo y quemado',topic:'Sabor'},
+ {t:'Demasiada demora, la fila fue larga y lenta',topic:'Demora'},
+ {t:'El mesero tardó muchísimo en atender',topic:'Demora'},
+ {t:'El domicilio llegó tarde y malo',topic:'Demora'},
+ {t:'Muy caro, no vale lo que cobran',topic:'Precio'},
+ {t:'Baños sucios, mal servicio',topic:'Limpieza'},
+ {t:'El empaque llegó roto y derramado',topic:'Empaque'},
+ {t:'Muy lento todo, tardaron media hora',topic:'Demora'},
+ {t:'Café frío otra vez, qué decepción',topic:'Temperatura'},
+ {t:'Servicio terrible, sucio y lento',topic:'Demora'},
+ {t:'Cumple con lo esperado'},
+ {t:'No es caro, pero tampoco barato'},
+ {t:'Buenísimo el café, pero la entrega fue muy lenta',topic:'Demora'},
+ {t:'Qué maravilloso esperar una hora por un café',topic:'Demora',ir:true},
+ {t:'Genial, otro latte frío, justo lo que quería',topic:'Temperatura',ir:true},
+ {t:'Excelente forma de perder la tarde, tardaron una eternidad',topic:'Demora',ir:true},
+ {t:'Súper rápido... si no te importa esperar cuarenta minutos',topic:'Demora',ir:true},
+ {t:'Precio perfecto si te gusta pagar el doble',topic:'Precio',ir:true}];
+const F={i:0,n:0,run:false,timer:null,order:[],ma:[],comps:[],cnt:{pos:0,neg:0,neu:0},topics:Object.fromEntries(TOPICS.map(t=>[t,0])),picked:null,ironyMiss:0};
+(function(){const r=mulberry32(9);F.order=FEED_POOL.map((_,i)=>i);for(let i=F.order.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[F.order[i],F.order[j]]=[F.order[j],F.order[i]]}})();
+function fReset(){clearInterval(F.timer);Object.assign(F,{i:0,n:0,run:false,timer:null,ma:[],comps:[],cnt:{pos:0,neg:0,neu:0},topics:Object.fromEntries(TOPICS.map(t=>[t,0])),picked:null,ironyMiss:0});$('#f-feed').innerHTML='';$('#f-go').textContent='▶ Iniciar';$('#f-res').textContent='';fRender()}
+function fTick(){
+  if(current!=='sentimientos')return;
+  if(F.n>=40){clearInterval(F.timer);F.run=false;$('#f-go').textContent='Fin del turno';$('#f-go').disabled=true;return}
+  const it=FEED_POOL[F.order[F.i++%FEED_POOL.length]],s=sentiment(it.t);F.n++;
+  F.cnt[s.label==='positivo'?'pos':s.label==='negativo'?'neg':'neu']++;
+  F.comps.push(s.comp);const last=F.comps.slice(-8);F.ma.push(last.reduce((a,b)=>a+b,0)/last.length);
+  if(it.topic)F.topics[it.topic]++;
+  const miss=it.ir&&s.label!=='negativo';if(miss)F.ironyMiss++;
+  const feed=$('#f-feed');
+  feed.insertAdjacentHTML('afterbegin',`<div class="rv ${s.label==='positivo'?'pos':s.label==='negativo'?'neg':''}">${esc(it.t)}<small>${s.label} · ${fmt(s.comp,2)}${miss?' · 😏 ironía: el lector se equivocó':''}${it.topic?' · tema: '+it.topic:''}</small></div>`);
+  while(feed.children.length>7)feed.lastElementChild.remove();
+  fRender();
+}
+function fRender(){
+  $('#f-n').textContent=F.n?`${F.n} reseñas · ${F.cnt.pos} positivas · ${F.cnt.neg} negativas · ${F.cnt.neu} neutrales`:'';
+  const w=cw('#f-spark'),h=70;
+  if(F.ma.length>1){const f=frame({w,h,xd:[0,Math.max(10,F.ma.length-1)],yd:[-1,1],m:{l:30,r:8,t:6,b:6},yt:[-1,0,1],xt:[],yf:v=>v>0?'+1':v<0?'−1':'0'});
+    const d=F.ma.map((v,i)=>(i?'L':'M')+f.sx(i).toFixed(1)+' '+f.sy(v).toFixed(1)).join('');
+    $('#f-spark').innerHTML=svg(w,h,f.axes+`<path d="${d}" style="fill:none;stroke:var(--c2);stroke-width:2.5"/>`,'Promedio móvil del sentimiento de las últimas reseñas')+'<p class="note" style="margin:2px 0 8px">Sentimiento promedio de las últimas 8 reseñas.</p>'}
+  else $('#f-spark').innerHTML='';
+  const mx=Math.max(1,...TOPICS.map(t=>F.topics[t]));
+  $('#f-topics').innerHTML=TOPICS.map(t=>`<div class="wbar"><span>${t}</span><div style="width:${F.topics[t]/mx*100}%;background:var(--bad)"></div><span>${F.topics[t]}</span></div>`).join('');
+  const ready=F.n>=20;
+  $('#f-pick').innerHTML=TOPICS.map(t=>`<button class="chip" data-tp="${t}" ${ready&&!PROG.nlp?'':'disabled'}>${t}</button>`).join('');
+  if(!PROG.nlp)setMs('nlp',ready?'Ya hay suficientes reseñas: elige la queja número uno.':`Reseñas leídas: ${F.n} de 20.`);
+}
+$('#f-pick').addEventListener('click',e=>{
+  const b=e.target.closest('[data-tp]');if(!b||b.disabled)return;
+  const mx=Math.max(...TOPICS.map(t=>F.topics[t])),tops=TOPICS.filter(t=>F.topics[t]===mx),tot=TOPICS.reduce((s,t)=>s+F.topics[t],0);
+  if(tops.includes(b.dataset.tp)){$('#f-res').innerHTML=`<b>Correcto.</b> «${b.dataset.tp}» concentra ${mx} de ${tot} quejas (${fmt(mx/tot*100,0)} %)${F.ironyMiss?`. Y ojo: ${F.ironyMiss} quejas irónicas pasaron como elogios para el lector`:''}.`;award('nlp')}
+  else $('#f-res').innerHTML=`<b>Todavía no.</b> Mira las barras: «${tops[0]}» tiene más quejas (${mx}) que «${b.dataset.tp}» (${F.topics[b.dataset.tp]}).`;
+});
+$('#f-go').addEventListener('click',()=>{
+  if(F.run){clearInterval(F.timer);F.run=false;$('#f-go').textContent='▶ Seguir';return}
+  F.run=true;$('#f-go').textContent='⏸ Pausar';fTick();F.timer=setInterval(fTick,1400);
+});
+$('#f-reset').addEventListener('click',()=>{$('#f-go').disabled=false;fReset()});
+{const s0=renderers.sentimientos;renderers.sentimientos=()=>{s0();fRender()}}
+
+/* quiz */
+{const _q=qRender;qRender=function(){_q();const ok=Q.ans.filter((v,i)=>v===QS[i].a).length;if(ok>=7)award('quiz');else if(!PROG.quiz)setMs('quiz',`Llevas ${ok} correctas. Meta: 7 de 9.`)};renderers.quiz=qRender;}
+
+/* arranque */
+Object.keys(MTXT).forEach(renderMission);uiProg();
+
+/* ================= V2.1 · retos guiados y gráfico a la vista ================= */
+const setR=(id,v)=>{const e=$('#'+id);if(e)e.value=v};
+const RETOS={
+ descriptivo:[[
+  {do:'Pon el mes 16 en 400',fn:()=>{D.x=400;dRender()},see:'Mira «Efecto de tu punto»: la media sube mucho y la mediana casi nada. Por eso la mediana es robusta.'},
+  {do:'Cambia a datos sesgados',fn:()=>dPreset('ses'),see:'Aun sin atípicos, la media queda por encima de la mediana: la cola larga la arrastra.'},
+  {do:'Vuelve a simétricos y decide con la mediana',fn:()=>{dPreset('sim');D.x=400;D.chosen='med';dRender();if(D.x>=300)award('desc')},see:'La proyección anual queda cerca de la real: error pequeño.'}]],
+ predictivo:[[
+  {do:'Sube el grado a 9',fn:()=>{P.deg=9;pRender()},see:'La curva se retuerce para pasar por cada punto de entrenamiento: el error de prueba se dispara.'},
+  {do:'Genera datos nuevos',fn:()=>{P.seed=Math.floor(Math.random()*1e5)+1;pGen();P.tried=new Set([P.deg]);pRender()},see:'Con grado 9 la curva cambia mucho de un conjunto a otro: es inestable, memoriza ruido.'},
+  {do:'Sube el ruido al máximo',fn:()=>{P.noise=14;setR('p-noise',14);pGen();P.tried=new Set([P.deg]);pRender()},see:'Con más ruido, el grado ideal baja: un modelo simple aguanta mejor.'},
+  {do:'Recorre todos los grados',fn:()=>$('#p-play').click(),see:'Mira la gráfica de costo: el mínimo marca el grado que le conviene a Camilo.'}]],
+ prescriptivo:[[
+  {do:'Ir al óptimo',fn:()=>$('#r-opt').click(),see:'El punto aterriza en una esquina de la zona verde. En programación lineal el óptimo siempre está en una esquina.'},
+  {do:'Sube el margen del cold brew a 60',fn:()=>{R.pb=60;setR('r-pb',60);rRender();$('#r-opt').click()},see:'Cambió el plan óptimo: ahora conviene priorizar el cold brew.'},
+  {do:'Reduce las horas de barista a 60',fn:()=>{R.H=60;setR('r-h',60);rRender();$('#r-opt').click()},see:'Cuando un recurso escasea, el óptimo se desplaza y el margen total baja.'}]],
+ mineria:[[
+  {do:'Prueba k = 2',fn:()=>{K.k=2;setR('k-k',2);kReset(false);kRender();$('#k-run').click()},see:'Dos grupos mezclan clientes distintos: la inercia es alta.'},
+  {do:'Prueba k = 5',fn:()=>{K.k=5;setR('k-k',5);kReset(false);kRender();$('#k-run').click()},see:'Cinco grupos parten segmentos naturales en pedazos que no se distinguen. Compara con el codo.'},
+  {do:'Vuelve a k = 3 y anímalo',fn:()=>{K.k=3;setR('k-k',3);kReset(false);kRender();$('#k-play').click()},see:'k = 3 está en el codo: los grupos son claros y se puede nombrar cada uno.'}],
+ [
+  {do:'Sube la confianza a 90 %',fn:()=>{A.conf=90;setR('a-conf',90);aRender()},see:'Quedan pocas reglas, casi todas de café y azúcar. Fíjate si todas tienen lift alto.'},
+  {do:'Baja soporte a 5 % y confianza a 40 %',fn:()=>{A.sup=5;A.conf=40;setR('a-sup',5);setR('a-conf',40);aRender()},see:'Aparecen muchas reglas, algunas casuales. Un buen filtro combina confianza y lift.'}]],
+ sentimientos:[[
+  {do:'Prueba «es malo»',fn:()=>{$('#s-in').value='es malo';sOne()},see:'Palabra negativa: puntaje negativo.'},
+  {do:'Prueba «no es malo»',fn:()=>{$('#s-in').value='no es malo';sOne()},see:'La negación invierte el signo, pero atenuado (×0,7).'},
+  {do:'Prueba la ironía',fn:()=>{$('#s-in').value='Qué maravilloso esperar una hora por un café';sOne()},see:'El léxico ve «maravilloso» y suma puntos: falla. Un modelo de lenguaje sí capta el contexto.'}]]
+};
+function buildRetos(){
+  Object.keys(RETOS).forEach(m=>{
+    const els=$$('#m-'+m+' .reto');
+    RETOS[m].forEach((steps,i)=>{
+      const el=els[i];if(!el)return;
+      el.innerHTML=`<h4>Prueba esto · ${steps.length} pasos</h4><ol class="rt">${steps.map((s,j)=>`<li data-j="${j}"><button class="btn" type="button">${j+1}. ${s.do}</button><p class="see" hidden>${s.see}</p></li>`).join('')}</ol>`;
+      el.addEventListener('click',e=>{const b=e.target.closest('.btn');if(!b)return;const li=b.closest('li');steps[+li.dataset.j].fn();li.classList.add('done');const p=$('.see',li);p.hidden=false;if(li.scrollIntoView&&innerWidth>900)return;})
+    });
+  });
+}
+buildRetos();
+function stick(){
+  $$('.lab').forEach(l=>{l.children[0]&&l.children[0].classList.remove('stk');l.children[1]&&l.children[1].classList.remove('stk')});
+  if(innerWidth<=900)return;
+  const l=$('.mod.on .lab');if(!l||l.children.length<2)return;
+  const a=l.children[0],b=l.children[1],sh=a.offsetHeight<b.offsetHeight?a:b,tl=Math.max(a.offsetHeight,b.offsetHeight);
+  if(sh.offsetHeight<innerHeight-130&&tl>sh.offsetHeight+120)sh.classList.add('stk');
+}
+window.addEventListener('hashchange',()=>setTimeout(stick,150));window.addEventListener('resize',()=>setTimeout(stick,200));
+setInterval(stick,1500);
+
+/* ================= V2.2 · banco de preguntas aleatorias ================= */
+const QBANK=QS.slice().concat([
+ {q:'Tu tablero muestra que las ventas de cold brew suben cuando sube la temperatura. ¿Qué tipo de análisis es?',o:['Descriptivo','Prescriptivo','Predictivo','Ninguno, es un error de medición'],a:0,e:'Resumir lo que ocurrió y cómo se relacionan las variables es análisis descriptivo. Predecir las ventas de la próxima semana ya sería predictivo.'},
+ {q:'Quieres pronosticar las ventas del próximo mes. ¿Qué técnica encaja mejor?',o:['Clustering','Regresión','Reglas de asociación','Análisis de sentimientos'],a:1,e:'Predecir un número a partir de otras variables es un problema de regresión.'},
+ {q:'¿Qué hace el aprendizaje no supervisado?',o:['Aprende de ejemplos con la respuesta correcta','Encuentra estructura en los datos sin etiquetas previas','Siempre necesita una variable objetivo','Solo sirve para texto'],a:1,e:'En el no supervisado nadie le dice al algoritmo cuál es la respuesta. K-means es el ejemplo clásico.'},
+ {q:'¿Para qué se separan los datos en entrenamiento y prueba?',o:['Para que el modelo ocupe menos memoria','Para medir el error en datos que el modelo nunca vio','Para eliminar valores atípicos','Para duplicar los datos'],a:1,e:'Evaluar con datos nuevos da una estimación honesta de cómo funcionará el modelo en la realidad.'},
+ {q:'Un modelo usa la columna «unidades vendidas» para predecir «ventas». Acierta casi siempre en la prueba. ¿Qué sospechas?',o:['Que es el mejor modelo posible','Fuga de datos: esa variable no se conoce al momento de pronosticar','Subajuste','Que faltan más datos de entrenamiento'],a:1,e:'Ventas es unidades por precio. Usar unidades es dar la respuesta al modelo, y en producción no la tendrías.'},
+ {q:'¿Qué indica una desviación estándar muy grande?',o:['Que los datos están muy concentrados cerca de la media','Que los datos están muy dispersos','Que no hay valores atípicos','Que la mediana es igual a la media'],a:1,e:'La desviación estándar mide la dispersión: cuanto mayor, más lejos de la media están los datos.'},
+ {q:'En un diagrama de caja, ¿qué representa la caja?',o:['El rango entre el mínimo y el máximo','El rango intercuartílico, del Q1 al Q3','Solo los valores atípicos','La media más o menos una desviación'],a:1,e:'La caja contiene el 50 % central de los datos. Los bigotes y los puntos sueltos muestran extremos y atípicos.'},
+ {q:'En programación lineal, ¿dónde está siempre el óptimo?',o:['En el centro de la región factible','En un vértice (esquina) de la región factible','Fuera de la región factible','En el origen'],a:1,e:'Con función objetivo lineal, el máximo o el mínimo se alcanza en un vértice de la región factible.'},
+ {q:'¿Qué es una restricción en un problema de optimización?',o:['Lo que quieres maximizar','Un límite de recursos que el plan debe respetar','El resultado final','Un error del modelo'],a:1,e:'Las restricciones, como horas o kilos disponibles, definen la región factible. La función objetivo es lo que se maximiza o minimiza.'},
+ {q:'Con k-means, ¿qué pasa si eliges k igual al número de clientes?',o:['Obtienes los mejores grupos posibles','Cada cliente es su propio grupo y la inercia es cero, pero no sirve para decidir','El algoritmo no converge','Se eliminan los atípicos'],a:1,e:'Bajar la inercia a toda costa no es el objetivo. Se busca un k pequeño que dé grupos útiles, por eso se mira el codo.'},
+ {q:'Una regla de asociación tiene lift = 1. ¿Qué significa?',o:['Los productos se compran siempre juntos','Los productos son independientes: no hay asociación','La regla es falsa','Hay una asociación negativa fuerte'],a:1,e:'Lift 1 significa que A y B aparecen juntos justo lo esperado por azar.'},
+ {q:'¿Qué es tokenizar?',o:['Cifrar un texto','Separar un texto en unidades como palabras','Traducir un texto','Eliminar todas las vocales'],a:1,e:'Tokenizar es el primer paso del procesamiento de lenguaje natural: partir el texto en tokens.'},
+ {q:'¿Qué hace una negación como «no» en un léxico de sentimientos?',o:['Se ignora siempre','Invierte (y suele atenuar) el signo de la palabra cercana','Duplica el puntaje','Elimina la reseña'],a:1,e:'«No es malo» no es negativo. El léxico simple resuelve esto con una regla de ventana de palabras.'},
+ {q:'¿Cuál es una ventaja de los modelos de lenguaje modernos frente a un léxico simple?',o:['Son más fáciles de explicar','Entienden el contexto, incluida a veces la ironía','No necesitan datos','Siempre son más baratos'],a:1,e:'Los modelos de lenguaje usan el contexto completo de la frase. El precio es que son más difíciles de explicar.'},
+ {q:'Quieres comparar las ventas de cuatro sedes. ¿Qué gráfico eliges?',o:['Barras','Líneas','Histograma','Dispersión'],a:0,e:'Para comparar categorías, las barras son la opción más legible.'},
+ {q:'Quieres ver si más publicidad se asocia con más ventas. ¿Qué gráfico eliges?',o:['Barras apiladas','Dispersión','Mapa de calor','Circular'],a:1,e:'La dispersión muestra la relación entre dos medidas numéricas y permite calcular la correlación.'},
+ {q:'¿Cuál de estas herramientas es una base de datos relacional que se consulta con SQL?',o:['PostgreSQL','Orange','Matplotlib','Jupyter'],a:0,e:'PostgreSQL es un sistema de bases de datos relacionales. Orange y KNIME son de flujos visuales, y Matplotlib es una librería de gráficos.'},
+ {q:'¿Qué librería de Python se usa principalmente para manipular tablas de datos?',o:['pandas','pysentimiento','lpSolve','ggplot2'],a:0,e:'pandas ofrece el DataFrame para limpiar, filtrar y agrupar datos. ggplot2 y lpSolve son de R.'},
+ {q:'La calidad de los datos importa porque…',o:['Los modelos corrigen solos los errores','Un análisis con datos sucios produce conclusiones poco confiables','Solo afecta a los gráficos','Los datos nunca tienen errores'],a:1,e:'Basura entra, basura sale: la limpieza y preparación determinan la calidad de todo lo que viene después.'},
+ {q:'Tu modelo funcionaba bien, pero después de seis meses sus pronósticos empeoran. ¿Qué conviene hacer?',o:['Nada, los modelos no envejecen','Monitorearlo y reentrenarlo porque el entorno cambió','Borrar los datos viejos y no usar modelo','Subir el grado del polinomio al máximo'],a:1,e:'El monitoreo es parte del ciclo: cuando cambian los clientes o el mercado, el modelo debe actualizarse.'},
+ {q:'Una correlación de r = −0,7 entre precio y unidades vendidas indica…',o:['Que subir el precio causa que bajen las ventas','Una asociación negativa fuerte: cuando uno sube, el otro tiende a bajar','Que no hay relación','Un error de cálculo'],a:1,e:'El signo indica la dirección y el valor absoluto la fuerza. Aun así, correlación no prueba causalidad.'},
+ {q:'¿Cuál es el orden típico de un proyecto de análisis de datos?',o:['Visualizar, recolectar, modelar, limpiar','Recolectar, limpiar, analizar y modelar, visualizar, decidir y monitorear','Modelar, decidir, recolectar, limpiar','Decidir, visualizar, recolectar'],a:1,e:'Cada etapa limita a la siguiente, y en la práctica el proceso es un ciclo.'},
+ {q:'¿Qué significa que un modelo sufre subajuste?',o:['Que es demasiado simple y falla incluso con los datos de entrenamiento','Que memorizó el ruido','Que usa demasiadas variables','Que tiene error cero'],a:0,e:'El subajuste aparece cuando el modelo no captura el patrón. Es el opuesto del sobreajuste.'},
+ {q:'¿Qué mide el RMSE?',o:['La correlación entre dos variables','El tamaño típico del error de las predicciones, en las mismas unidades de la variable','El número de grupos óptimo','La proporción de aciertos'],a:1,e:'Es la raíz del error cuadrático medio: cuanto menor, más cerca están las predicciones de lo real.'},
+ {q:'¿Cuándo es preferible la mediana a la media?',o:['Cuando los datos son simétricos y sin atípicos','Cuando hay valores extremos o los datos son sesgados','Nunca','Solo con datos de texto'],a:1,e:'La mediana resiste los extremos. La media es mejor cuando los datos son simétricos y limpios.'}
+]);
+let RQ=Math.random;
+function qDeal(){
+  const idx=QBANK.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(RQ()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  const pick=idx.slice(0,9).map(i=>{const q=QBANK[i],o=q.o.map((t,k)=>({t,ok:k===q.a}));
+    for(let i2=o.length-1;i2>0;i2--){const j=Math.floor(RQ()*(i2+1));[o[i2],o[j]]=[o[j],o[i2]]}
+    return {q:q.q,o:o.map(x=>x.t),a:o.findIndex(x=>x.ok),e:q.e}});
+  QS.length=0;pick.forEach(p=>QS.push(p));Q.ans.fill(null);
+}
+qDeal();
+$('#q-reset').textContent='Nuevas preguntas';
+$('#q-reset').addEventListener('click',()=>{qDeal();qRender()});
+{const lead=$('#m-quiz .mh p:last-child');if(lead)lead.textContent=`Nueve preguntas al azar de un banco de ${QBANK.length}. Cada vez que abres el laboratorio o pulsas «Nuevas preguntas» salen otras, y las opciones cambian de orden. Con 7 aciertos ganas la misión.`}
+
+/* ================= V2.3 · entrega al profesor y código de grupo ================= */
+let STN='';try{STN=localStorage.getItem('labdatos2name')||''}catch(_){}
+$('#st-name').value=STN;
+function stSummary(){
+  const x=xpNow(),nm=($('#st-name').value||'').trim()||'(sin nombre)';
+  const done=Object.keys(MIS).filter(k=>PROG[k]).map(k=>'✓ '+MIS[k].t+' (+'+MIS[k].xp+' XP)'),todo=Object.keys(MIS).filter(k=>!PROG[k]).map(k=>'○ '+MIS[k].t);
+  return `Laboratorio de datos · Café Altiplano\nEstudiante: ${nm}\nNivel: ${levelOf(x)}\nXP: ${x} / ${TOTAL_XP}\n\nMisiones completadas:\n${done.join('\n')||'ninguna aún'}\n\nPendientes:\n${todo.join('\n')||'ninguna'}`;
+}
+function stUpdate(){
+  try{localStorage.setItem('labdatos2name',$('#st-name').value)}catch(_){}
+  $('#st-mail').href='mailto:andres_escobar@cun.edu.co?subject='+encodeURIComponent('Laboratorio de datos: avance de '+(($('#st-name').value||'').trim()||'estudiante'))+'&body='+encodeURIComponent(stSummary());
+}
+$('#st-name').addEventListener('input',stUpdate);
+$('#st-mail').addEventListener('click',stUpdate);
+$('#st-copy').addEventListener('click',e=>{stUpdate();copyText(stSummary(),e.currentTarget)});
+{const u=uiProg;uiProg=function(){u();stUpdate()}}
+uiProg();
+/* código de grupo para fijar las preguntas */
+{
+  const sec=$('#m-quiz .row');
+  sec.insertAdjacentHTML('afterend','<div class="gc"><label for="q-code">Código de grupo (opcional)</label><input type="text" id="q-code" placeholder="p. ej. CUN-2026-1" autocomplete="off"><button class="btn sm" id="q-apply" type="button">Aplicar</button><span class="note" style="margin:0">Con el mismo código, todo el grupo recibe las mismas preguntas en el mismo orden.</span></div>');
+  $('#q-apply').addEventListener('click',()=>{
+    const c=$('#q-code').value.trim();
+    if(c){let h=2166136261;for(const ch of c){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}RQ=mulberry32(h>>>0)}else RQ=Math.random;
+    qDeal();qRender();
+  });
+}
+
+/* ================= inicio ================= */
+showTab(location.hash.slice(1)||'ruta');
+</script>
+
+</body>
+</html>

@@ -310,7 +310,7 @@ a.btn{text-decoration:none;display:inline-block}
 <body>
 <header class="top"><div class="top-in">
   <div class="brand"><b>Laboratorio de datos</b><span>Caso: Café Altiplano · prueba, decide y mira el código</span>
-    <div class="xp" aria-live="polite"><span class="lv" id="xp-lv">Aprendiz</span><span class="bar" aria-hidden="true"><i id="xp-bar"></i></span><span id="xp-n">0 / 900 XP</span></div></div>
+    <div class="xp" aria-live="polite"><span class="lv" id="xp-lv">Aprendiz</span><span class="bar" aria-hidden="true"><i id="xp-bar"></i></span><span id="xp-n">0 / 1000 XP</span><span class="lv" id="xp-g" title="Nota = XP / 1000 × 5">Nota 0,0 / 5,0</span></div></div>
   <nav class="tabs" aria-label="Módulos">
     <a class="tab on" id="tab-ruta" href="#ruta">Inicio<span class="ck">✓</span></a>
     <a class="tab" id="tab-descriptivo" href="#descriptivo">Descriptivo<span class="ck">✓</span></a>
@@ -358,8 +358,7 @@ a.btn{text-decoration:none;display:inline-block}
   </div>
 
   <h2 class="sec">Tus misiones</h2>
-  <div class="card" style="margin-bottom:12px"><h3>Entrega tu avance al profesor</h3><p class="sub">Escribe tu nombre y genera un correo con tu nivel y tus misiones completadas.</p>
-    <div class="row"><input type="text" id="st-name" placeholder="Tu nombre completo" aria-label="Tu nombre completo" style="max-width:300px"><a class="btn primary" id="st-mail" href="mailto:andres_escobar@cun.edu.co">Enviar por correo</a><button class="btn" id="st-copy" type="button">Copiar resumen</button></div></div>
+
   <ul class="mlist" id="mlist"></ul>
 
   <h2 class="sec">Elige qué quieres probar</h2>
@@ -2278,12 +2277,11 @@ const QBANK=QS.slice().concat([
  {q:'¿Qué mide el RMSE?',o:['La correlación entre dos variables','El tamaño típico del error de las predicciones, en las mismas unidades de la variable','El número de grupos óptimo','La proporción de aciertos'],a:1,e:'Es la raíz del error cuadrático medio: cuanto menor, más cerca están las predicciones de lo real.'},
  {q:'¿Cuándo es preferible la mediana a la media?',o:['Cuando los datos son simétricos y sin atípicos','Cuando hay valores extremos o los datos son sesgados','Nunca','Solo con datos de texto'],a:1,e:'La mediana resiste los extremos. La media es mejor cuando los datos son simétricos y limpios.'}
 ]);
-let RQ=Math.random;
 function qDeal(){
   const idx=QBANK.map((_,i)=>i);
-  for(let i=idx.length-1;i>0;i--){const j=Math.floor(RQ()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
   const pick=idx.slice(0,9).map(i=>{const q=QBANK[i],o=q.o.map((t,k)=>({t,ok:k===q.a}));
-    for(let i2=o.length-1;i2>0;i2--){const j=Math.floor(RQ()*(i2+1));[o[i2],o[j]]=[o[j],o[i2]]}
+    for(let i2=o.length-1;i2>0;i2--){const j=Math.floor(Math.random()*(i2+1));[o[i2],o[j]]=[o[j],o[i2]]}
     return {q:q.q,o:o.map(x=>x.t),a:o.findIndex(x=>x.ok),e:q.e}});
   QS.length=0;pick.forEach(p=>QS.push(p));Q.ans.fill(null);
 }
@@ -2292,33 +2290,12 @@ $('#q-reset').textContent='Nuevas preguntas';
 $('#q-reset').addEventListener('click',()=>{qDeal();qRender()});
 {const lead=$('#m-quiz .mh p:last-child');if(lead)lead.textContent=`Nueve preguntas al azar de un banco de ${QBANK.length}. Cada vez que abres el laboratorio o pulsas «Nuevas preguntas» salen otras, y las opciones cambian de orden. Con 7 aciertos ganas la misión.`}
 
-/* ================= V2.3 · entrega al profesor y código de grupo ================= */
-let STN='';try{STN=localStorage.getItem('labdatos2name')||''}catch(_){}
-$('#st-name').value=STN;
-function stSummary(){
-  const x=xpNow(),nm=($('#st-name').value||'').trim()||'(sin nombre)';
-  const done=Object.keys(MIS).filter(k=>PROG[k]).map(k=>'✓ '+MIS[k].t+' (+'+MIS[k].xp+' XP)'),todo=Object.keys(MIS).filter(k=>!PROG[k]).map(k=>'○ '+MIS[k].t);
-  return `Laboratorio de datos · Café Altiplano\nEstudiante: ${nm}\nNivel: ${levelOf(x)}\nXP: ${x} / ${TOTAL_XP}\n\nMisiones completadas:\n${done.join('\n')||'ninguna aún'}\n\nPendientes:\n${todo.join('\n')||'ninguna'}`;
-}
-function stUpdate(){
-  try{localStorage.setItem('labdatos2name',$('#st-name').value)}catch(_){}
-  $('#st-mail').href='mailto:andres_escobar@cun.edu.co?subject='+encodeURIComponent('Laboratorio de datos: avance de '+(($('#st-name').value||'').trim()||'estudiante'))+'&body='+encodeURIComponent(stSummary());
-}
-$('#st-name').addEventListener('input',stUpdate);
-$('#st-mail').addEventListener('click',stUpdate);
-$('#st-copy').addEventListener('click',e=>{stUpdate();copyText(stSummary(),e.currentTarget)});
-{const u=uiProg;uiProg=function(){u();stUpdate()}}
+/* ================= V2.3 · nota de 0,0 a 5,0 ================= */
+const notaXP=()=>xpNow()/TOTAL_XP*5;
+{const u=uiProg;uiProg=function(){u();$('#xp-g').textContent='Nota '+fmt(notaXP(),1)+' / 5,0'}}
 uiProg();
-/* código de grupo para fijar las preguntas */
-{
-  const sec=$('#m-quiz .row');
-  sec.insertAdjacentHTML('afterend','<div class="gc"><label for="q-code">Código de grupo (opcional)</label><input type="text" id="q-code" placeholder="p. ej. CUN-2026-1" autocomplete="off"><button class="btn sm" id="q-apply" type="button">Aplicar</button><span class="note" style="margin:0">Con el mismo código, todo el grupo recibe las mismas preguntas en el mismo orden.</span></div>');
-  $('#q-apply').addEventListener('click',()=>{
-    const c=$('#q-code').value.trim();
-    if(c){let h=2166136261;for(const ch of c){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}RQ=mulberry32(h>>>0)}else RQ=Math.random;
-    qDeal();qRender();
-  });
-}
+{const q=qRender;qRender=function(){q();const ok=Q.ans.filter((v,i)=>v===QS[i].a).length,done=Q.ans.filter(v=>v!==null).length;
+  $('#q-score').textContent+=' · Nota '+fmt(ok/QS.length*5,1)+' / 5,0'+(done<QS.length?' (parcial)':'');};renderers.quiz=qRender}
 
 /* ================= inicio ================= */
 showTab(location.hash.slice(1)||'ruta');
